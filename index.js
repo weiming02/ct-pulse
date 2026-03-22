@@ -120,7 +120,13 @@ app.post('/api/analyse', rateLimit, async (req, res) => {
     if (!Array.isArray(candles1h) || !Array.isArray(candles4h)) return res.status(400).json({ error: 'candles must be arrays' });
     if (candles1h.length > 100 || candles4h.length > 100) return res.status(400).json({ error: 'too many candles' });
 
-    const summarise = (candles) => candles.slice(-30).map(c => ({ t: new Date(c.timestamp * 1000).toISOString().slice(11, 16), o: +Number(c.open).toFixed(8), h: +Number(c.high).toFixed(8), l: +Number(c.low).toFixed(8), c: +Number(c.close).toFixed(8), v: +Number(c.volume || 0).toFixed(0) }));
+    const summarise = (candles) => candles.slice(-30).map(c => ({
+  t: new Date(c.timestamp * 1000).toISOString().slice(11, 16),
+  o: +Number(c.open).toFixed(6),
+  h: +Number(c.high).toFixed(6),
+  l: +Number(c.low).toFixed(6),
+  c: +Number(c.close).toFixed(6)
+}));
     const fmtLevels = (lvls) => ({ support: lvls.support.map((s, i) => `S${i + 1}: ${s}`).join(', ') || 'none clear', resistance: lvls.resistance.map((r, i) => `R${i + 1}: ${r}`).join(', ') || 'none clear' });
     const l1h = fmtLevels(levels1h);
     const l4h = fmtLevels(levels4h);
