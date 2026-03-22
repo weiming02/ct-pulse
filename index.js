@@ -137,14 +137,18 @@ app.post('/api/analyse', rateLimit, async (req, res) => {
     const l1h = fmtLevels(levels1h);
     const l4h = fmtLevels(levels4h);
 
-    const prompt = `Crypto TA analyst. Return ONLY valid JSON, no markdown.
-TOKEN: ${tokenData.name} ($${tokenData.symbol}) | ${tokenData.chain}
-PRICE: ${tokenData.price} | 24H: ${tokenData.change24h}% | LIQ: ${tokenData.liquidity} | AGE: ${tokenData.age}
-1H: support ${l1h.support} | resistance ${l1h.resistance}
-4H: support ${l4h.support} | resistance ${l4h.resistance}
-1H CANDLES: ${JSON.stringify(summarise(candles1h))}
-4H CANDLES: ${JSON.stringify(summarise(candles4h))}
-Return ONLY this JSON: {"formation":"pattern name","bias":"bullish|bearish|neutral","pattern_description":"3 sentences on chart structure","momentum":"2 sentences on pressure","key_levels":"key levels with prices","volume_story":"2 sentences on volume","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why"}],"invalidation":"price + meaning","verdict":"2 sentence honest take"}`;
+    const prompt = `You are a crypto TA analyst. Analyse this token and return ONLY a JSON object, no markdown, no newlines inside string values.
+
+TOKEN: ${tokenData.name} ($${tokenData.symbol}) on ${tokenData.chain}
+PRICE: ${tokenData.price} | 24H CHANGE: ${tokenData.change24h}%
+LIQUIDITY: ${tokenData.liquidity} | AGE: ${tokenData.age}
+1H SUPPORT: ${l1h.support} | 1H RESISTANCE: ${l1h.resistance}
+4H SUPPORT: ${l4h.support} | 4H RESISTANCE: ${l4h.resistance}
+RECENT 1H CLOSES: ${summarise(candles1h).map(c => c.c).join(', ')}
+RECENT 4H CLOSES: ${summarise(candles4h).map(c => c.c).join(', ')}
+
+Return this exact JSON with short single-line string values only:
+{"formation":"","bias":"","pattern_description":"","momentum":"","key_levels":"","volume_story":"","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"","reasoning":""},{"label":"safe entry","price":0,"timeframe":"","reasoning":""}],"invalidation":"","verdict":""}`;
 
     const data = await callClaude({ model: HAIKU, max_tokens: 600, messages: [{ role: 'user', content: prompt }] });
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
