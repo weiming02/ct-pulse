@@ -401,8 +401,8 @@ function renderNarratives(data){
       +'<div class="ncard-body">'
       +'<div class="ncard-top"><span class="ncard-name">'+safe(n.name)+'</span><span class="cyc '+cycleClass(n.cycle_stage)+'">'+safe(n.cycle_stage)+'</span></div>'
       +'<p class="ncard-summary">'+safe(n.summary)+'</p>'
-      +'<div class="bar-row"><span class="bar-lbl">hype</span><div class="bar-track"><div class="bar-fill bf-hype" style="width:'+Math.min(100,parseInt(n.hype_score)*10)+'%"></div></div><span class="bar-num">'+parseInt(n.hype_score)+'/10</span></div>'
-+'<div class="bar-row"><span class="bar-lbl">fundamentals</span><div class="bar-track"><div class="bar-fill bf-fund" style="width:'+Math.min(100,parseInt(n.fundamentals_score)*10)+'%"></div></div><span class="bar-num">'+parseInt(n.fundamentals_score)+'/10</span></div>'
+     +'<div class="bar-row"><span class="bar-lbl">hype</span><div class="bar-track"><div class="bar-fill bf-hype" style="width:'+Math.min(100,Math.max(0,parseInt(n.hype_score)%11)*10)+'%"></div></div><span class="bar-num">'+Math.min(10,Math.max(0,parseInt(n.hype_score)%11))+'/10</span></div>'
++'<div class="bar-row"><span class="bar-lbl">fundamentals</span><div class="bar-track"><div class="bar-fill bf-fund" style="width:'+Math.min(100,Math.max(0,parseInt(n.fundamentals_score)%11)*10)+'%"></div></div><span class="bar-num">'+Math.min(10,Math.max(0,parseInt(n.fundamentals_score)%11))+'/10</span></div>'
       +'<div class="chatter"><span class="chatter-lbl">CT chatter</span><div class="cdots">'+dots(ts)+'</div><span class="chatter-txt">'+talkLabel(ts)+'</span></div>'
       +'</div><div class="ncard-arrow">›</div></div>'
       +'<div class="ncard-detail" id="nd-'+i+'">'
@@ -593,7 +593,7 @@ async function analyseCA(){
     const c4h=candles['4h'].slice(-15).map(c=>+Number(c.close).toFixed(6));
 
     const apiKey=await getApiKey();
-    const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. '
+    const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. Entry zones must always be BELOW current price for bearish bias, ABOVE current price for bullish bias. Current price is '+tokenData.price+'. '
       +'TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+tokenData.price+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' '
       +'1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+' '
       +'4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+' '
