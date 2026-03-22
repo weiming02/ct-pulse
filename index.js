@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-
 app.use(express.json({ limit: '50kb' }));
 
 const rateLimitMap = new Map();
@@ -15,7 +14,7 @@ function rateLimit(req, res, next) {
   if (now > record.resetAt) { record.count = 0; record.resetAt = now + RATE_WINDOW_MS; }
   record.count++;
   rateLimitMap.set(ip, record);
-  if (record.count > RATE_LIMIT) return res.status(429).json({ error: 'too many requests — slow down, degen' });
+  if (record.count > RATE_LIMIT) return res.status(429).json({ error: 'too many requests' });
   next();
 }
 
@@ -25,9 +24,7 @@ const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 async function cacheGet(key) {
   if (!UPSTASH_URL || !UPSTASH_TOKEN) return null;
   try {
-    const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
-      headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
-    });
+    const res = await fetch(`${UPSTASH_URL}/get/${key}`, { headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` } });
     const data = await res.json();
     if (!data.result) return null;
     return JSON.parse(data.result);
@@ -48,7 +45,6 @@ async function cacheSet(key, value, ttlSeconds) {
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const HAIKU = 'claude-haiku-4-5-20251001';
-const SONNET = 'claude-sonnet-4-5';
 
 if (!ANTHROPIC_API_KEY) { console.error('ERROR: ANTHROPIC_API_KEY not set'); process.exit(1); }
 
@@ -62,12 +58,10 @@ async function callClaude(body) {
   return res.json();
 }
 
-// ── KEY ROUTE — safely expose API key to own frontend only ────
 app.get('/api/key', (req, res) => {
   res.json({ key: ANTHROPIC_API_KEY });
 });
 
-// ── NARRATIVES ROUTE (cached 4h) ──────────────────────────────
 app.post('/api/narratives', rateLimit, async (req, res) => {
   try {
     const CACHE_KEY = 'ct_narratives_v6';
@@ -78,16 +72,17 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
         return res.json({ narratives: cached.narratives, cached: true, cachedAt: cached.timestamp, nextRefresh: cached.timestamp + CACHE_TTL_MS });
       }
     }
-
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const userMsg = 'Today is ' + today + '. You are a crypto researcher tracking emerging tech in blockchain. Return ONLY a valid JSON array, no markdown. Exactly 6 objects covering: AI agents with wallets (Virtuals, ai16z, ElizaOS), agentic commerce and infrastructure, decentralised AI compute, new on-chain behaviours from automation. Name actual projects and teams. Fields: name, summary, hype_score, fundamentals_score, cycle_stage, talk_score, verdict, why_trending, comparable, next_move. cycle_stage must be one of: early, mid-cycle, peak hype, late / cooling. All strings single line no apostrophes. Sort by talk_score descending.';
     const data = await callClaude({
-      model: HAIKU, max_tokens: 2000,
-      messages: [{ role: 'user', content: ``Today is ${today}. You are a crypto researcher tracking emerging tech in blockchain. Return ONLY a valid JSON array, no markdown. Exactly 6 objects covering: AI agents with wallets (Virtuals, ai16z, ElizaOS), agentic commerce and infrastructure, decentralised AI compute, new on-chain behaviours from automation. Name actual projects and teams. Fields: name, summary, hype_score, fundamentals_score, cycle_stage, talk_score, verdict, why_trending, comparable, next_move. cycle_stage: early or mid-cycle or peak hype or late / cooling. All strings single line, no apostrophes. Sort by talk_score desc.`
-
+      model: HAIKU,
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: userMsg }]
+    });
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
     const cleaned = txt.replace(/```json/g, '').replace(/```/g, '').trim();
     const match = cleaned.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error('No JSON in Claude response — Claude said: ' + cleaned.slice(0, 200));
+    if (!match) throw new Error('No JSON in Claude response');
     const narratives = JSON.parse(match[0]);
     const payload = { narratives, timestamp: Date.now() };
     await cacheSet(CACHE_KEY, payload, 4 * 60 * 60);
