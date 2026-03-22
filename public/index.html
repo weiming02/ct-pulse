@@ -605,6 +605,8 @@ async function analyseCA() {
     document.getElementById('token-strip').classList.add('on');
 
     document.getElementById('ca-msg').textContent = MSGS_CA[1];
+    candles = { '1h': [], '4h': [] };
+    levels = { '1h': { support: [], resistance: [] }, '4h': { support: [], resistance: [] } };
     candles['1h'] = await fetchCandles(pair, '1h');
     document.getElementById('ca-msg').textContent = MSGS_CA[2];
     candles['4h'] = await fetchCandles(pair, '4h');
@@ -661,10 +663,16 @@ async function analyseCA() {
     if (!match) throw new Error('No analysis returned');
     let analysis;
     try { analysis = JSON.parse(match[0]); }
-    catch(e2) {
-      const safe2 = match[0].replace(/("(?:[^"\\]|\\.)*")|'([^'\\]|\\.)*'/g, m=>m.replace(/\n/g,'\\n').replace(/\r/g,'\\r').replace(/\t/g,'\\t'));
-      analysis = JSON.parse(safe2);
-    }
+catch(e2) {
+  const safe2 = match[0]
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ')
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']')
+    .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":')
+    .replace(/:\s*'([^']*)'/g, ':"$1"');
+  try { analysis = JSON.parse(safe2); }
+  catch(e3) { throw new Error('Claude returned unparseable JSON — try again'); }
+}
     renderAnalysis(analysis);
 
   } catch(e) {
