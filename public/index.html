@@ -653,7 +653,7 @@ function renderAnalysis(a,mcap,pair){
     d.innerHTML='<div class="ez-left"><span class="ez-name">'+safe(ez.label)+'</span><span class="ez-tf">'+safe(ez.timeframe)+'</span></div>'
   +'<div style="display:flex;flex-direction:column;gap:2px;min-width:120px">'
   +'<span class="ez-price '+(ezClass[i]||'ez-ok')+'">'+fmtP(ez.price)+'</span>'
-  +'<span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">mcap '+safe(ez.price>0&&pair&&pair.priceUsd&&pair.marketCap?fmt((ez.price/parseFloat(pair.priceUsd))*pair.marketCap):(mcap||''))+'</span>'
+  +'<span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">'+safe((()=>{if(ez.price>0&&pair&&pair.priceUsd&&pair.marketCap){const base=(ez.price/parseFloat(pair.priceUsd))*pair.marketCap;const lo=fmt(base*0.97);const hi=fmt(base*1.03);return'mcap '+lo+' – '+hi;}return'mcap '+(mcap||'');})())+'</span>'
   +'</div>'
   +'<span class="ez-reason">'+safe(ez.reasoning)+'</span>';
     ezList.appendChild(d);
