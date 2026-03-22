@@ -75,7 +75,32 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const data = await callClaude({
       model: MODEL, max_tokens: 2000,
-      messages: [{ role: 'user', content: `Today is ${today}. You are a hardcore crypto degen who lives on CT. Based on your knowledge of crypto trends and the current date, identify what memecoins, AI agent tokens, and wild crypto narratives are most likely trending on Crypto Twitter right now. Focus on: hot memecoins and animal metas gaining traction, AI agent tokens (Virtuals protocol, ai16z ecosystem, autonomous agents with wallets), new pump.fun or launchpad meta tokens, wild narrative shifts or sector rotations, major ongoing catalysts moving specific tokens. Return ONLY a valid JSON array, no markdown, no extra text. Exactly 6 objects: { "name": "short punchy name (2-4 words)", "summary": "one sharp sentence — what it is and why CT is going crazy about it", "hype_score": integer 1-10, "fundamentals_score": integer 1-10, "cycle_stage": "early" or "mid-cycle" or "peak hype" or "late / cooling", "talk_score": integer 1-10, "verdict": "one line real talk — worth aping, worth watching, or avoid and why", "why_trending": "2 sentences on the specific catalyst driving this", "comparable": "one past crypto narrative this reminds you of and what happened", "next_move": "what most likely happens next in the next 1-2 weeks" }. Sort by talk_score descending. Be specific, not generic.` }]
+      messages: [{ role: 'user', content: content: `Today is ${today}. You are a degenerate crypto trader who spends 16 hours a day on Crypto Twitter, pump.fun, and dexscreener. You know every memecoin meta, every AI agent narrative, every CT influencer call. Your job is to give the REAL picture of what degens are actually aping into right now.
+
+Focus ONLY on:
+- Memecoins: what animal meta is running (dogs, cats, frogs, penguins etc), what pump.fun tokens are going viral, what CT influencers are shilling, what's getting 10x-100x talk right now
+- AI agent tokens specifically: Virtuals protocol agents, ai16z ecosystem, autonomous AI agents that hold wallets and trade, any new AI agent launchpad getting attention
+- Degen narratives: anything wild, controversial, or drama-driven that's moving money right now
+- New L1/L2 ecosystems if memecoins are exploding on them specifically
+
+Do NOT include: boring DeFi, RWA, institutional stuff, or anything a suit would care about. This is pure degen territory.
+
+For each narrative be SPECIFIC — name actual tokens, name actual CT accounts talking about it, name specific price moves or events driving it. No vague generic takes.
+
+Return ONLY a valid JSON array, no markdown, no extra text. Exactly 6 objects:
+{
+  "name": "short punchy name (2-4 words)",
+  "summary": "one sharp degen sentence — what it is, what's happening RIGHT NOW, and why CT can't stop talking about it",
+  "hype_score": integer 1-10,
+  "fundamentals_score": integer 1-10,
+  "cycle_stage": "early" or "mid-cycle" or "peak hype" or "late / cooling",
+  "talk_score": integer 1-10,
+  "verdict": "one line real degen take — are we early, is this a rug waiting to happen, is this the next 100x meta or is it cooked",
+  "why_trending": "2 specific sentences — name the exact catalyst, the CT accounts, the price move or event that started this",
+  "comparable": "what past memecoin or crypto narrative does this remind you of, what happened to that one",
+  "next_move": "honest degen prediction — pump continues, rotation incoming, or rug incoming and why"
+}
+Sort by talk_score descending. Be brutally specific, not generic.`
     });
 
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
