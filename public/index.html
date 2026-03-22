@@ -401,8 +401,8 @@ function renderNarratives(data){
       +'<div class="ncard-body">'
       +'<div class="ncard-top"><span class="ncard-name">'+safe(n.name)+'</span><span class="cyc '+cycleClass(n.cycle_stage)+'">'+safe(n.cycle_stage)+'</span></div>'
       +'<p class="ncard-summary">'+safe(n.summary)+'</p>'
-      +'<div class="bar-row"><span class="bar-lbl">hype</span><div class="bar-track"><div class="bar-fill bf-hype" style="width:'+n.hype_score*10+'%"></div></div><span class="bar-num">'+n.hype_score+'/10</span></div>'
-      +'<div class="bar-row"><span class="bar-lbl">fundamentals</span><div class="bar-track"><div class="bar-fill bf-fund" style="width:'+n.fundamentals_score*10+'%"></div></div><span class="bar-num">'+n.fundamentals_score+'/10</span></div>'
+      +'<div class="bar-row"><span class="bar-lbl">hype</span><div class="bar-track"><div class="bar-fill bf-hype" style="width:'+Math.min(100,parseInt(n.hype_score)*10)+'%"></div></div><span class="bar-num">'+parseInt(n.hype_score)+'/10</span></div>'
++'<div class="bar-row"><span class="bar-lbl">fundamentals</span><div class="bar-track"><div class="bar-fill bf-fund" style="width:'+Math.min(100,parseInt(n.fundamentals_score)*10)+'%"></div></div><span class="bar-num">'+parseInt(n.fundamentals_score)+'/10</span></div>'
       +'<div class="chatter"><span class="chatter-lbl">CT chatter</span><div class="cdots">'+dots(ts)+'</div><span class="chatter-txt">'+talkLabel(ts)+'</span></div>'
       +'</div><div class="ncard-arrow">›</div></div>'
       +'<div class="ncard-detail" id="nd-'+i+'">'
@@ -457,7 +457,7 @@ async function fetchCandles(pair,tf){
   try{
     const r=await fetch('https://api.dexscreener.com/latest/dex/candles/'+pair.chainId+'/'+pair.pairAddress+'?type='+q+'&limit='+limit);
     const d=await r.json();
-    if(d?.candles?.length>0)return d.candles.slice(-50);
+    if(d?.candles?.length>0)return d.candles.sort((a,b)=>a.timestamp-b.timestamp).slice(-50);
   }catch(e){}
   return synthesizeCandles(pair,limit,hours);
 }
