@@ -64,7 +64,7 @@ async function callClaude(body) {
 
 app.post('/api/narratives', rateLimit, async (req, res) => {
   try {
-    const CACHE_KEY = 'ct_narratives_v4';
+    const CACHE_KEY = 'ct_narratives_v5';
     const cached = await cacheGet(CACHE_KEY);
     if (cached && cached.narratives && cached.timestamp) {
       const age = Date.now() - cached.timestamp;
@@ -75,7 +75,7 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
 
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const data = await callClaude({
-      model: SONNET, max_tokens: 2500,
+      model: HAIKU, max_tokens: 1500,
       messages: [{ role: 'user', content: `Today is ${today}. You are a crypto researcher who tracks emerging technology narratives in the blockchain space. You follow CT closely but you care about SIGNAL not noise — the real tech shifts that are creating new markets. Your job is to identify the most important emerging tech narratives in crypto right now that degens AND builders should know about. Focus on: AI agents and agentic commerce (autonomous agents that hold wallets, execute trades, pay for services, hire other agents, interact on-chain without humans — Virtuals protocol, ai16z, ElizaOS, new agent frameworks), agentic infrastructure (payment rails for agents, agent-to-agent communication, on-chain identity for agents, agent launchpads), new computing paradigms (decentralised AI compute, model ownership on-chain, projects bridging AI and crypto infrastructure), emerging on-chain behaviour (new use cases that did not exist 12 months ago, new transaction types created by AI or automation), and any wild new tech narrative getting serious CT attention from builders and investors. For each narrative be SPECIFIC — name actual projects, actual teams or founders, specific technical milestones or launches driving it. No vague takes. Return ONLY a valid JSON array, no markdown, no extra text. Exactly 6 objects with these exact fields: name, summary, hype_score, fundamentals_score, cycle_stage, talk_score, verdict, why_trending, comparable, next_move. cycle_stage must be one of: early, mid-cycle, peak hype, late / cooling. All values must be strings or integers. Sort by talk_score descending.` }]
     });
 
