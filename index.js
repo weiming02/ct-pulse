@@ -148,9 +148,9 @@ RECENT 1H CLOSES: ${summarise(candles1h).map(c => c.c).join(', ')}
 RECENT 4H CLOSES: ${summarise(candles4h).map(c => c.c).join(', ')}
 
 Return this exact JSON with short single-line string values only:
-{"formation":"","bias":"","pattern_description":"","momentum":"","key_levels":"","volume_story":"","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"","reasoning":""},{"label":"safe entry","price":0,"timeframe":"","reasoning":""}],"invalidation":"","verdict":""}`;
+{"formation":"specific chart pattern name","bias":"bullish or bearish or neutral","pattern_description":"describe what 4H macro structure shows then what 1H is doing right now then what this means for a degen trader","momentum":"describe if buying or selling pressure is dominant and what candle shapes reveal about conviction","key_levels":"list every support and resistance level from both timeframes with exact prices and why each level matters","volume_story":"describe what volume trend tells us about accumulation or distribution or low conviction","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H or 4H","reasoning":"specific support level this aligns with and why"},{"label":"safe entry","price":0,"timeframe":"1H or 4H","reasoning":"specific level this aligns with and why"},{"label":"aggressive entry","price":0,"timeframe":"1H or 4H","reasoning":"reason to buy at or near current price if valid"}],"invalidation":"exact price level that kills the thesis and what it means if broken","verdict":"honest direct take on whether this is a good setup right now and the risk reward"}`;
 
-    const data = await callClaude({ model: HAIKU, max_tokens: 600, messages: [{ role: 'user', content: prompt }] });
+    const data = await callClaude({ model: HAIKU, max_tokens: 900, messages: [{ role: 'user', content: prompt }] });
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
     const cleaned = txt.replace(/```json/g, '').replace(/```/g, '').replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').trim();
     const match = cleaned.match(/\{[\s\S]*\}/);
