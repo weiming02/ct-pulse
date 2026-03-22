@@ -171,6 +171,7 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .empty{padding:48px 0;text-align:center}
 .empty p{font-family:var(--mono);font-size:12px;color:var(--ink3);margin-bottom:5px}
 .err{color:var(--red)}
+/* RUG CHECK */
 .rug-score-wrap{display:none;margin-bottom:2px}
 .rug-score-wrap.on{display:block}
 .rug-score-header{background:var(--bg2);border:1px solid var(--border-strong);padding:20px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
@@ -206,24 +207,40 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .metric-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:4px}
 .metric-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink)}
 .metric-sub{font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:2px}
-.rug-postmortem{display:none;background:var(--bg2);border:1px solid var(--border-strong);border-top:none;padding:20px 24px}
-.rug-postmortem.on{display:block}
-.pm-title{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.1em;margin-bottom:14px}
-.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-.pm-block{background:var(--bg3);padding:14px}
-.pm-lbl{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:7px}
-.pm-txt{font-size:13px;color:var(--ink2);line-height:1.6}
-.pm-verdict{background:var(--red);padding:14px 16px}
-.pm-verdict.safe{background:var(--green)}
-.pm-verdict.caution{background:var(--amber)}
-.pm-verdict-lbl{font-family:var(--mono);font-size:10px;color:rgba(0,0,0,0.55);letter-spacing:0.08em;margin-bottom:5px}
-.pm-verdict-txt{font-size:14px;font-weight:700;color:#000;line-height:1.5}
+.zach-report{display:none;background:var(--bg2);border:1px solid var(--border-strong);border-top:none;padding:20px 24px}
+.zach-report.on{display:block}
+.zach-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border-strong)}
+.zach-icon{font-size:20px}
+.zach-title{font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:0.1em}
+.zach-subtitle{font-size:13px;color:var(--ink2);margin-top:2px}
+.zach-section{margin-bottom:18px}
+.zach-section-title{font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:0.1em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.zach-section-title::after{content:'';flex:1;height:1px;background:rgba(255,68,68,0.2)}
+.zach-block{background:var(--bg3);padding:14px;margin-bottom:8px}
+.zach-block-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:6px}
+.zach-block-txt{font-size:13px;color:var(--ink2);line-height:1.7}
+.zach-timeline{display:flex;flex-direction:column;gap:0}
+.zach-event{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--border)}
+.zach-event:last-child{border-bottom:none}
+.zach-event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.dot-red{background:var(--red)}
+.dot-amber{background:var(--amber)}
+.dot-green{background:var(--green)}
+.zach-event-content{flex:1}
+.zach-event-title{font-size:13px;font-weight:700;margin-bottom:2px}
+.zach-event-desc{font-size:12px;color:var(--ink2);line-height:1.5}
+.verdict-strip{padding:16px 20px;margin-top:4px}
+.verdict-strip-innocent{background:var(--green);color:#000}
+.verdict-strip-suspicious{background:var(--amber);color:#000}
+.verdict-strip-guilty{background:var(--red);color:#fff}
+.verdict-strip-lbl{font-family:var(--mono);font-size:10px;opacity:0.6;letter-spacing:0.08em;margin-bottom:5px}
+.verdict-strip-txt{font-size:14px;font-weight:800;line-height:1.5}
 footer{padding:24px 0 40px;border-top:1px solid var(--border);margin-top:48px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
 @media(max-width:600px){
-  .analysis-grid,.detail-grid,.pm-grid{grid-template-columns:1fr}
+  .analysis-grid,.detail-grid{grid-template-columns:1fr}
   .ncard-detail{padding-left:18px}
-  .token-stats{grid-template-columns:repeat(2,1fr)}
+  .token-stats,.metrics-grid{grid-template-columns:repeat(2,1fr)}
   .rug-score-header{flex-direction:column;align-items:flex-start}
 }
 </style>
@@ -248,13 +265,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     <div class="live-dot"><div class="dot"></div><span id="last-updated">not loaded</span></div>
   </div>
 </header>
- 
+
 <div class="tabs">
   <button class="tab active" id="tab-n" onclick="switchTab('n')">narratives</button>
   <button class="tab" id="tab-ca" onclick="switchTab('ca')">chart analysis</button>
-  <button class="tab" id="tab-rug" onclick="switchTab('rug')">rug check</button>
+  <button class="tab" id="tab-rug" onclick="switchTab('rug')">investigate</button>
 </div>
- 
+
+<!-- NARRATIVES TAB -->
 <div id="pane-n">
   <button class="big-btn" id="narrative-btn" onclick="loadNarratives()">
     <div class="btn-pulse" id="btn-pulse"></div>
@@ -273,7 +291,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     <p>powered by claude + upstash cache.</p>
   </div>
 </div>
- 
+
+<!-- CHART ANALYSIS TAB -->
 <div id="pane-ca" style="display:none">
   <div class="sl">paste contract address</div>
   <div class="ca-input-row">
@@ -370,77 +389,116 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     <p>AI reads candles on 1H + 4H and identifies formations + entry zones.</p>
   </div>
 </div>
- 
+
+<!-- INVESTIGATE TAB -->
 <div id="pane-rug" style="display:none">
-  <div class="sl">paste contract address to check</div>
+  <div class="sl">on-chain investigation</div>
   <div class="ca-input-row">
-    <input type="text" id="rug-input" placeholder="live token or dead rug — paste CA to find out" onkeydown="if(event.key==='Enter')rugCheck()">
-    <button class="ca-btn" id="rug-btn" onclick="rugCheck()">check →</button>
+    <input type="text" id="rug-input" placeholder="paste any CA — live token or suspected rug" onkeydown="if(event.key==='Enter')rugCheck()">
+    <button class="ca-btn" id="rug-btn" onclick="rugCheck()">investigate →</button>
   </div>
-  <div class="ca-note">live tokens: rug probability score + warning flags · dead tokens: full post-mortem, cause of death, lessons for degens</div>
+  <div class="ca-note">ZachXBT-style analysis · suspicious pattern detection · timeline reconstruction · live token risk scoring · dead token post-mortem</div>
   <div class="loading" id="rug-loading">
     <div class="ldots"><span></span><span></span><span></span></div>
-    <p id="rug-msg">pulling on-chain data...</p>
+    <p id="rug-msg">opening case file...</p>
   </div>
+
   <div class="rug-score-wrap" id="rug-score-wrap">
     <div class="rug-score-header">
       <div class="rug-dial">
         <div class="rug-score-num" id="rug-score-num">—</div>
-        <div class="rug-score-lbl">RUG SCORE / 100</div>
+        <div class="rug-score-lbl">THREAT SCORE</div>
       </div>
       <div class="rug-verdict-wrap">
-        <div id="rug-mode-badge" class="rug-mode-badge mode-live">LIVE TOKEN</div>
+        <div id="rug-mode-badge" class="rug-mode-badge mode-live">LIVE INVESTIGATION</div>
         <div class="rug-verdict-title" id="rug-verdict-title">—</div>
         <div class="rug-verdict-sub" id="rug-verdict-sub">—</div>
       </div>
     </div>
   </div>
+
   <div class="rug-metrics" id="rug-metrics">
-    <div class="rug-metrics-title">ON-CHAIN METRICS</div>
+    <div class="rug-metrics-title">EVIDENCE COLLECTED</div>
     <div class="metrics-grid" id="rug-metrics-grid"></div>
   </div>
+
   <div class="rug-flags" id="rug-flags">
-    <div class="rug-flags-title">FLAGS DETECTED</div>
+    <div class="rug-flags-title">SUSPICIOUS ACTIVITY FLAGS</div>
     <div class="flag-list" id="flag-list"></div>
   </div>
-  <div class="rug-postmortem" id="rug-postmortem">
-    <div class="pm-title" id="pm-section-title">AI DEEP ANALYSIS</div>
-    <div class="pm-grid" id="pm-main-grid">
-      <div class="pm-block"><div class="pm-lbl">LIQUIDITY HEALTH</div><div class="pm-txt" id="pm-liquidity"></div></div>
-      <div class="pm-block"><div class="pm-lbl">VOLUME PATTERN</div><div class="pm-txt" id="pm-volume"></div></div>
-      <div class="pm-block"><div class="pm-lbl">PRICE ACTION SIGNALS</div><div class="pm-txt" id="pm-price"></div></div>
-      <div class="pm-block"><div class="pm-lbl">TOKENOMICS RISK</div><div class="pm-txt" id="pm-tokenomics"></div></div>
+
+  <div class="zach-report" id="zach-report">
+    <div class="zach-header">
+      <div class="zach-icon">🔍</div>
+      <div>
+        <div class="zach-title">INVESTIGATOR REPORT</div>
+        <div class="zach-subtitle" id="zach-token-name">—</div>
+      </div>
     </div>
-    <div id="pm-extra-grid"></div>
-    <div class="pm-verdict" id="pm-verdict-box">
-      <div class="pm-verdict-lbl">BOTTOM LINE</div>
-      <div class="pm-verdict-txt" id="pm-verdict-txt">—</div>
+
+    <div class="zach-section">
+      <div class="zach-section-title">PRICE ACTION FORENSICS</div>
+      <div class="zach-block"><div class="zach-block-lbl">WHAT THE CHART IS TELLING US</div><div class="zach-block-txt" id="z-price-forensics"></div></div>
+    </div>
+
+    <div class="zach-section">
+      <div class="zach-section-title">LIQUIDITY FORENSICS</div>
+      <div class="zach-block"><div class="zach-block-lbl">DEPTH ANALYSIS AND REMOVAL RISK</div><div class="zach-block-txt" id="z-liq-forensics"></div></div>
+    </div>
+
+    <div class="zach-section">
+      <div class="zach-section-title">VOLUME FORENSICS</div>
+      <div class="zach-block"><div class="zach-block-lbl">ORGANIC VS MANIPULATED FLOW</div><div class="zach-block-txt" id="z-vol-forensics"></div></div>
+    </div>
+
+    <div class="zach-section">
+      <div class="zach-section-title">STRUCTURAL RISK ANALYSIS</div>
+      <div class="zach-block"><div class="zach-block-lbl">TOKENOMICS AND CONCENTRATION RISK</div><div class="zach-block-txt" id="z-structural"></div></div>
+    </div>
+
+    <div id="zach-timeline-section" class="zach-section" style="display:none">
+      <div class="zach-section-title">TIMELINE OF EVENTS</div>
+      <div class="zach-timeline" id="zach-timeline"></div>
+    </div>
+
+    <div id="zach-postmortem-section" class="zach-section" style="display:none">
+      <div class="zach-section-title">CAUSE OF DEATH</div>
+      <div class="zach-block"><div class="zach-block-lbl">PRIMARY CAUSE</div><div class="zach-block-txt" id="z-cause"></div></div>
+      <div class="zach-block" style="margin-top:8px"><div class="zach-block-lbl">NARRATIVE USED TO PUMP</div><div class="zach-block-txt" id="z-narrative"></div></div>
+      <div class="zach-block" style="margin-top:8px"><div class="zach-block-lbl">WARNING SIGNS THAT WERE VISIBLE BEFORE COLLAPSE</div><div class="zach-block-txt" id="z-warnings"></div></div>
+      <div class="zach-block" style="margin-top:8px"><div class="zach-block-lbl">LESSONS FOR DEGENS</div><div class="zach-block-txt" id="z-lessons"></div></div>
+    </div>
+
+    <div class="verdict-strip" id="verdict-strip">
+      <div class="verdict-strip-lbl">INVESTIGATOR VERDICT</div>
+      <div class="verdict-strip-txt" id="verdict-strip-txt">—</div>
     </div>
   </div>
+
   <div class="empty" id="rug-empty">
-    <p>paste any contract address — live or dead.</p>
-    <p>live tokens get a rug risk score. dead tokens get a full post-mortem.</p>
+    <p>paste any contract address to open an investigation.</p>
+    <p>live tokens get threat scoring. dead tokens get full forensic post-mortem.</p>
   </div>
 </div>
- 
+
 <footer>
   <p>CT Pulse · powered by Claude + DEXScreener</p>
   <p>not financial advice · dyor · degens only</p>
 </footer>
 </div>
- 
+
 <script>
 let charts={'1h':null,'4h':null};
 let candles={'1h':[],'4h':[]};
 let levels={'1h':{support:[],resistance:[]},'4h':{support:[],resistance:[]}};
 let currentPair=null;
 let cachedApiKey=null;
- 
+
 function safe(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('ctpulse_theme',document.body.classList.contains('light')?'light':'dark');}
 const savedTheme=localStorage.getItem('ctpulse_theme');
 if(savedTheme==='light')document.body.classList.add('light');
- 
+
 async function getApiKey(){
   if(cachedApiKey)return cachedApiKey;
   const res=await fetch('/api/key');
@@ -449,16 +507,16 @@ async function getApiKey(){
   cachedApiKey=data.key;
   return cachedApiKey;
 }
- 
+
 const MSGS_N=['scanning for emerging tech narratives...','finding the real signal...','separating alpha from noise...','checking what builders are shipping...'];
 const MSGS_CA=['fetching token data from DEXScreener...','pulling 1H candles...','pulling 4H candles...','sending to AI analyst...','identifying formations + entry zones...'];
-const MSGS_RUG=['pulling on-chain data...','analysing liquidity depth...','checking volume patterns...','scanning for warning signs...','running rug probability model...'];
- 
+const MSGS_RUG=['opening case file...','collecting on-chain evidence...','analysing transaction patterns...','cross-referencing suspicious activity...','compiling investigator report...'];
+
 function fmt(n){if(!n&&n!==0)return'—';if(n>=1e9)return'$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+Number(n).toFixed(2);}
 function fmtP(p){if(!p&&p!==0)return'—';p=Number(p);if(p>=1)return'$'+p.toFixed(4);if(p>=0.01)return'$'+p.toFixed(6);const s=p.toFixed(14);const m=s.match(/^0\.(0*)/);const z=m?m[1].length:0;return'$0.0{'+z+'}'+s.slice(z+2,z+6).replace(/0+$/,'');}
 function fmtPct(n){if(!n&&n!==0)return'—';return(n>=0?'+':'')+Number(n).toFixed(2)+'%';}
 function timeAgo(ts){const d=(Date.now()/1000-ts)/86400;if(d<1)return Math.round(d*24)+'h old';if(d<30)return Math.round(d)+'d old';return Math.round(d/30)+'mo old';}
- 
+
 function switchTab(t){
   ['n','ca','rug'].forEach(id=>{
     document.getElementById('tab-'+id).classList.toggle('active',id===t);
@@ -469,7 +527,7 @@ function switchChart(tf,btn){document.querySelectorAll('.chart-tab').forEach(b=>
 function dots(n){let h='';for(let i=0;i<10;i++)h+='<div class="cdot'+(i<n?' on':'')+'"></div>';return h;}
 function talkLabel(n){if(n>=9)return'everywhere on CT';if(n>=7)return'very high buzz';if(n>=5)return'moderate chatter';if(n>=3)return'growing mentions';return'early whispers';}
 function cycleClass(s){s=(s||'').toLowerCase();if(s.includes('early'))return'cyc-early';if(s.includes('peak')||s.includes('late')||s.includes('cool')||s.includes('dead'))return'cyc-late';return'cyc-mid';}
- 
+
 async function loadNarratives(){
   const btn=document.getElementById('narrative-btn');
   btn.disabled=true;
@@ -494,7 +552,7 @@ async function loadNarratives(){
   btn.disabled=false;
   document.getElementById('btn-pulse').style.cssText='';
 }
- 
+
 function renderNarratives(data){
   const list=document.getElementById('nlist');
   list.innerHTML='';
@@ -524,14 +582,14 @@ function renderNarratives(data){
   });
   document.getElementById('n-results').style.display='block';
 }
- 
+
 function toggleN(i){
   const c=document.querySelector('.ncard[data-i="'+i+'"]');
   const was=c.classList.contains('expanded');
   document.querySelectorAll('.ncard').forEach(x=>x.classList.remove('expanded'));
   if(!was)c.classList.add('expanded');
 }
- 
+
 function calcLevels(cands,livePriceOverride){
   const highs=cands.map(c=>c.high),lows=cands.map(c=>c.low),closes=cands.map(c=>c.close);
   const ph=[],pl=[];
@@ -542,7 +600,7 @@ function calcLevels(cands,livePriceOverride){
   const cur=livePriceOverride||closes[closes.length-1];
   return{support:pl.filter(l=>l<cur).sort((a,b)=>b-a).slice(0,3),resistance:ph.filter(h=>h>cur).sort((a,b)=>a-b).slice(0,3),currentPrice:cur};
 }
- 
+
 function synthesizeCandles(pair,count,intervalHours){
   const price=parseFloat(pair.priceUsd||0.001);
   const chg=parseFloat(pair.priceChange?.h24||0)/100;
@@ -558,7 +616,7 @@ function synthesizeCandles(pair,count,intervalHours){
   }
   return cands;
 }
- 
+
 async function fetchCandles(pair,tf){
   const tfMap={'1h':{q:'1h',limit:50,hours:1},'4h':{q:'4h',limit:50,hours:4}};
   const{q,limit,hours}=tfMap[tf];
@@ -569,7 +627,7 @@ async function fetchCandles(pair,tf){
   }catch(e){}
   return synthesizeCandles(pair,limit,hours);
 }
- 
+
 function drawChart(canvasId,cands,lvls){
   const ctx=document.getElementById(canvasId).getContext('2d');
   const key=canvasId==='chart-canvas-1h'?'1h':'4h';
@@ -619,7 +677,7 @@ function drawChart(canvasId,cands,lvls){
   });
   charts[key]=chart;
 }
- 
+
 async function analyseCA(){
   const ca=document.getElementById('ca-input').value.trim();
   if(!ca)return;
@@ -674,10 +732,7 @@ async function analyseCA(){
     const c1h=candles['1h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
     const c4h=candles['4h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
     const apiKey=await getApiKey();
-    const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. Entry zones must always be BELOW current price for bearish bias, ABOVE current price for bullish bias. Current price is '+parseFloat(pair.priceUsd).toFixed(10)+'. '
-      +'TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+parseFloat(pair.priceUsd).toFixed(10)+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' '
-      +'1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+'  4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+'  1H_CLOSES: '+c1h.join(',')+' 4H_CLOSES: '+c4h.join(',')+' '
-      +'Return this JSON: {"formation":"name","bias":"bullish or bearish or neutral","pattern_description":"4H structure and 1H timing and meaning","momentum":"pressure and conviction","key_levels":"levels with prices and note the MCAP of '+tokenData.marketCap+' for context on liquidity risk","volume_story":"accumulation or distribution relative to the '+tokenData.marketCap+' marketcap","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for position sizing here"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for liquidity risk here"}],"invalidation":"price and meaning","verdict":"honest take including whether the '+tokenData.marketCap+' MCAP is appropriate risk for this setup"}';
+    const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. Entry zones must always be BELOW current price for bearish bias, ABOVE for bullish. Current price is '+parseFloat(pair.priceUsd).toFixed(10)+'. TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+parseFloat(pair.priceUsd).toFixed(10)+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' 1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+'  4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+'  1H_CLOSES: '+c1h.join(',')+' 4H_CLOSES: '+c4h.join(',')+' Return this JSON: {"formation":"name","bias":"bullish or bearish or neutral","pattern_description":"4H structure and 1H timing and meaning","momentum":"pressure and conviction","key_levels":"levels with prices and note the MCAP of '+tokenData.marketCap+' for context on liquidity risk","volume_story":"accumulation or distribution relative to the '+tokenData.marketCap+' marketcap","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for position sizing here"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for liquidity risk here"}],"invalidation":"price and meaning","verdict":"honest take including whether the '+tokenData.marketCap+' MCAP is appropriate risk for this setup"}';
     const analysisRes=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
@@ -702,7 +757,7 @@ async function analyseCA(){
   document.getElementById('ca-loading').classList.remove('on');
   btn.disabled=false;btn.textContent='analyse →';
 }
- 
+
 function renderAnalysis(a,mcap,pair){
   const fb=document.getElementById('formation-badge');
   fb.textContent=a.formation||'—';
@@ -748,17 +803,18 @@ function renderAnalysis(a,mcap,pair){
     desc.classList.add('on');
   });
 }
- 
+
+// ── INVESTIGATE / RUG CHECK ───────────────────────────────────
 async function rugCheck(){
   const ca=document.getElementById('rug-input').value.trim();
   if(!ca)return;
   const btn=document.getElementById('rug-btn');
-  btn.disabled=true;btn.textContent='checking...';
+  btn.disabled=true;btn.textContent='investigating...';
   document.getElementById('rug-loading').classList.add('on');
   document.getElementById('rug-msg').textContent=MSGS_RUG[0];
-  ['rug-score-wrap','rug-metrics','rug-flags','rug-postmortem'].forEach(id=>document.getElementById(id).classList.remove('on'));
-  document.getElementById('pm-extra-grid').innerHTML='';
+  ['rug-score-wrap','rug-metrics','rug-flags','zach-report'].forEach(id=>document.getElementById(id).classList.remove('on'));
   document.getElementById('rug-empty').style.display='none';
+
   try{
     document.getElementById('rug-msg').textContent=MSGS_RUG[1];
     const dsr=await fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca);
@@ -768,144 +824,230 @@ async function rugCheck(){
     const pair=pairs[0];
     const totalLiquidity=pairs.reduce((s,p)=>s+(p.liquidity?.usd||0),0);
     const totalVolume24h=pairs.reduce((s,p)=>s+(p.volume?.h24||0),0);
+    const totalVolume6h=pairs.reduce((s,p)=>s+(p.volume?.h6||0),0);
+    const totalVolume1h=pairs.reduce((s,p)=>s+(p.volume?.h1||0),0);
+
     document.getElementById('rug-msg').textContent=MSGS_RUG[2];
-    const rugCandles=await fetchCandles(pair,'1h');
+    const rugCandles1h=await fetchCandles(pair,'1h');
     const rugCandles4h=await fetchCandles(pair,'4h');
+
     document.getElementById('rug-msg').textContent=MSGS_RUG[3];
-    const liqToMcap=pair.marketCap>0?(totalLiquidity/pair.marketCap)*100:0;
-    const volToLiq=totalLiquidity>0?(totalVolume24h/totalLiquidity)*100:0;
+
+    // ── COMPUTED SIGNALS ─────────────────────────────────────
+    const liqUsd=totalLiquidity;
+    const mcapUsd=pair.marketCap||0;
+    const numPairs=pairs.length;
+    const liqToMcap=mcapUsd>0?(liqUsd/mcapUsd)*100:0;
+    const volToLiq=liqUsd>0?(totalVolume24h/liqUsd)*100:0;
     const chg1h=parseFloat(pair.priceChange?.h1||0);
     const chg6h=parseFloat(pair.priceChange?.h6||0);
     const chg24h=parseFloat(pair.priceChange?.h24||0);
     const agedays=pair.pairCreatedAt?(Date.now()/1000-pair.pairCreatedAt/1000)/86400:999;
-    const closes1h=rugCandles.map(c=>c.close);
+    const closes1h=rugCandles1h.map(c=>c.close);
     const closes4h=rugCandles4h.map(c=>c.close);
-    const vols1h=rugCandles.map(c=>c.volume||0);
+    const vols1h=rugCandles1h.map(c=>c.volume||0);
     const recentClose=closes1h[closes1h.length-1]||0;
-    const maxClose=Math.max(...closes1h);
-    const drawdownPct=maxClose>0?((maxClose-recentClose)/maxClose)*100:0;
+    const maxClose1h=Math.max(...closes1h);
+    const minClose1h=Math.min(...closes1h.filter(x=>x>0));
+    const drawdownPct=maxClose1h>0?((maxClose1h-recentClose)/maxClose1h)*100:0;
     const avgVol=vols1h.slice(-20).reduce((a,b)=>a+b,0)/20;
     const recentVol=vols1h.slice(-3).reduce((a,b)=>a+b,0)/3;
+    const earlyVol=vols1h.slice(0,10).reduce((a,b)=>a+b,0)/10;
     const volTrend=avgVol>0?(recentVol/avgVol)*100:100;
-    const liqUsd=totalLiquidity;
-    const mcapUsd=pair.marketCap||0;
-    const numPairs=pairs.length;
+    const pumpThenDump=earlyVol>0?(recentVol/earlyVol)*100:100;
+
+    // suspicious price action signals (no API needed)
+    const suspiciousVolumeSpike=volToLiq>300;
+    const volumeDryingUp=volTrend<30;
+    const extremePump=chg24h>200;
+    const violentDump=chg24h<-60;
+    const tooNewTooHigh=agedays<7&&mcapUsd>1e6;
+    const microCapHighVol=mcapUsd<100000&&totalVolume24h>mcapUsd*2;
+    const multiPairSuspicious=numPairs>5&&liqUsd<50000;
+    const honeypotSignal=totalVolume24h>0&&liqUsd<1000;
+
+    // liq/mcap risk — context-aware based on mcap size
+    const liqRiskLabel=(()=>{
+      if(mcapUsd>500e6)return liqToMcap<0.3?'low for mega cap':liqToMcap<1?'normal for mega cap':'healthy';
+      if(mcapUsd>100e6)return liqToMcap<0.5?'low for large cap':liqToMcap<2?'normal for large cap':'healthy';
+      if(mcapUsd>10e6)return liqToMcap<2?'DANGER: thin for mid cap':liqToMcap<5?'watch closely':'OK';
+      if(mcapUsd>1e6)return liqToMcap<5?'DANGER: very thin for small cap':liqToMcap<15?'risky':'OK';
+      return liqToMcap<10?'DANGER: extreme risk':(liqToMcap<30?'very risky':'high but micro cap');
+    })();
+
     const isDead=liqUsd<5000||drawdownPct>85||volTrend<5;
     const mode=isDead?'postmortem':'livecheck';
+
     document.getElementById('rug-msg').textContent=MSGS_RUG[4];
     const apiKey=await getApiKey();
-    const rugPrompt=isDead
-      ?'You are a crypto forensics expert doing a post-mortem on a dead or rugged token. Return ONLY a raw JSON object, no markdown, no code blocks, only double quotes, no apostrophes, no newlines inside strings.'
-        +' TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+'. '
-        +' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)
-        +' MARKET CAP: '+fmt(mcapUsd)
-        +' REMAINING LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs'
-        +' LIQUIDITY TO MCAP RATIO: '+liqToMcap.toFixed(2)+'%'
-        +' DRAWDOWN FROM PEAK IN WINDOW: '+drawdownPct.toFixed(1)+'%'
-        +' VOLUME TREND VS AVG: '+volTrend.toFixed(0)+'%'
-        +' PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)
-        +' TOKEN AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' old'
-        +' LAST 15 x 1H CLOSES: '+closes1h.slice(-15).map(c=>+Number(c).toFixed(10)).join(',')
-        +' LAST 10 x 4H CLOSES: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')
-        +' Return this JSON: {"rug_score":100,"mode":"postmortem","verdict_title":"short verdict like RUGGED or DEAD or ABANDONED","verdict_summary":"2 sentences on what happened","flags":[{"severity":"red","title":"flag title","detail":"specific data"}],"liquidity_analysis":"how liquidity was drained","volume_analysis":"volume pattern before death - pump and dump or slow bleed or sudden rug","price_analysis":"how the price died - describe the pattern","tokenomics_risk":"structural weaknesses that made this vulnerable","cause_of_death":"single main reason this token died - rug pull or team exit or narrative died or no organic demand","narrative_that_pumped_it":"what hype story got people to buy this","warning_signs":"on-chain and chart warning signs savvy degens should have seen before collapse","lessons_for_degens":"3 specific actionable lessons this token teaches about avoiding rugs","bottom_line":"3 sentence honest verdict on what happened and what to learn"}'
-      :'You are a crypto rug pull and scam detection expert analysing a LIVE token. Return ONLY a raw JSON object, no markdown, no code blocks, only double quotes, no apostrophes, no newlines inside strings.'
-        +' TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+'. '
+
+    // ── ZACHXBT-STYLE PROMPT ─────────────────────────────────
+    const zachPrompt=isDead
+      ? 'You are a blockchain forensics investigator like ZachXBT. You write detailed, evidence-based post-mortems on dead or rugged tokens. Be specific, cite the numbers, reconstruct what happened step by step. No vague language. Return ONLY a raw JSON object, no markdown, only double quotes, no apostrophes, no newlines inside strings.'
+        +' CASE FILE: '+safe(pair.baseToken?.name||'unknown')+' ('+safe(pair.baseToken?.symbol||'')+') on '+safe(pair.chainId||'')+'. '
         +' CURRENT PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)
         +' MARKET CAP: '+fmt(mcapUsd)
-        +' TOTAL LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs'
-        +' LIQUIDITY TO MCAP RATIO: '+liqToMcap.toFixed(2)+'%'
-        +' 24H VOLUME: '+fmt(totalVolume24h)
-        +' VOLUME TO LIQUIDITY RATIO: '+volToLiq.toFixed(2)+'%'
+        +' REMAINING LIQUIDITY: '+fmt(liqUsd)+' ('+liqToMcap.toFixed(2)+'% of mcap)'
+        +' PEAK PRICE IN WINDOW: '+fmtP(maxClose1h)+' CURRENT: '+fmtP(recentClose)+' DRAWDOWN: '+drawdownPct.toFixed(1)+'%'
+        +' VOLUME: 1H '+fmt(totalVolume1h)+' 6H '+fmt(totalVolume6h)+' 24H '+fmt(totalVolume24h)
+        +' VOLUME TREND (recent vs avg): '+volTrend.toFixed(0)+'%'
+        +' PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)
+        +' TOKEN AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' old'
+        +' TRADING PAIRS: '+numPairs
+        +' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')
+        +' Return this JSON: {'
+        +'"threat_score":100,'
+        +'"mode":"postmortem",'
+        +'"verdict_title":"5-7 word verdict — be specific like COORDINATED RUG PULL or TEAM EXIT SCAM or SLOW BLEED DEATH",'
+        +'"verdict_summary":"2 sentences on what happened using the exact numbers from the data",'
+        +'"flags":[{"severity":"red","title":"specific flag name","detail":"exact numbers and what they indicate"}],'
+        +'"price_forensics":"Describe exactly how the price died using the candle data. What was the pump pattern. When did it peak. How fast was the collapse. What does the current price action look like. Use specific price levels from the data.",'
+        +'"liquidity_forensics":"Was liquidity removed suddenly or gradually. What does the remaining liquidity level suggest about exit completion. Is this a partial or total rug.",'
+        +'"volume_forensics":"Describe the volume signature. Was there a volume spike at the peak suggesting coordinated dump. Did volume dry up before price collapsed indicating smart money exit. What does the early vs recent volume ratio tell us.",'
+        +'"structural_risk":"What structural weaknesses made this token a target. Age at time of rug. Liquidity concentration. Any honeypot signals.",'
+        +'"cause_of_death":"Single precise cause — rug pull liquidity removal or team dump or organic death or honeypot or wash trading scheme",'
+        +'"narrative_used":"What CT narrative or hype did the team use to attract buyers. Be specific.",'
+        +'"warning_signs":"List the specific data points that were visible warning signs BEFORE the collapse. Cite exact numbers. This is the most important section — teach degens what to look for.",'
+        +'"timeline":[{"event":"event title","detail":"what happened with specific numbers","severity":"red or amber"}],'
+        +'"lessons":"3 specific lessons from this case that degens can apply immediately to avoid the same trap",'
+        +'"investigator_verdict":"Final 3-sentence ZachXBT-style verdict. Name the crime. State the evidence. Give the takeaway for the community."'
+        +'}'
+      : 'You are a blockchain forensics investigator like ZachXBT. You investigate LIVE tokens for suspicious activity. Be specific, cite the numbers, identify patterns that suggest coordinated manipulation or rug setup. Do NOT flag low liquidity-to-mcap ratio as suspicious for large cap tokens above $100M mcap — this is normal. Only flag genuine suspicious activity patterns. Return ONLY a raw JSON object, no markdown, only double quotes, no apostrophes, no newlines inside strings.'
+        +' CASE FILE: '+safe(pair.baseToken?.name||'unknown')+' ('+safe(pair.baseToken?.symbol||'')+') on '+safe(pair.chainId||'')+'. '
+        +' CURRENT PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)
+        +' MARKET CAP: '+fmt(mcapUsd)+' (cap tier: '+(mcapUsd>500e6?'mega cap':mcapUsd>100e6?'large cap':mcapUsd>10e6?'mid cap':mcapUsd>1e6?'small cap':'micro cap')+')'
+        +' TOTAL LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs ('+liqToMcap.toFixed(2)+'% of mcap — context: '+liqRiskLabel+')'
+        +' 24H VOLUME: '+fmt(totalVolume24h)+' VOL/LIQ RATIO: '+volToLiq.toFixed(1)+'%'
         +' PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)
         +' TOKEN AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' old'
         +' DRAWDOWN FROM RECENT HIGH: '+drawdownPct.toFixed(1)+'%'
-        +' RECENT VOLUME TREND: '+volTrend.toFixed(0)+'% of average'
-        +' LAST 15 x 1H CLOSES: '+closes1h.slice(-15).map(c=>+Number(c).toFixed(10)).join(',')
+        +' VOLUME TREND (recent vs avg): '+volTrend.toFixed(0)+'% — '+(volumeDryingUp?'DRYING UP — potential exit signal':'within normal range')
+        +' SUSPICIOUS SIGNALS DETECTED: '
+        +(suspiciousVolumeSpike?' VOL/LIQ>300% (possible wash trading);':' ')
+        +(extremePump?' 24H pump>200% (pump and dump pattern);':' ')
+        +(violentDump?' 24H dump>60% (possible coordinated exit);':' ')
+        +(tooNewTooHigh?' token under 7d old with mcap>$1M (high manipulation risk);':' ')
+        +(microCapHighVol?' micro cap with volume 2x mcap (wash trading suspected);':' ')
+        +(multiPairSuspicious?' 5+ pairs with thin liquidity (fragmented liquidity — honeypot setup);':' ')
+        +(honeypotSignal?' volume with near-zero liquidity (honeypot signal);':' ')
+        +' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')
         +' LAST 10 x 4H CLOSES: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')
-        +' Return this JSON: {"rug_score":0,"mode":"livecheck","verdict_title":"short 4-6 word verdict","verdict_summary":"2 sentences on overall risk","flags":[{"severity":"red or amber or green","title":"flag title","detail":"specific data point"}],"liquidity_analysis":"2 sentences on liquidity depth and removal risk","volume_analysis":"2 sentences on volume patterns and wash trading signs","price_analysis":"2 sentences on price action warning signs","tokenomics_risk":"2 sentences on mcap vs liquidity ratio and age risk","bottom_line":"3 sentences honest assessment of rug risk"}';
- 
-    const rugRes=await fetch('https://api.anthropic.com/v1/messages',{
+        +' Return this JSON: {'
+        +'"threat_score":0,'
+        +'"mode":"livecheck",'
+        +'"verdict_title":"5-7 word verdict — be specific",'
+        +'"verdict_summary":"2 sentences on overall threat assessment citing specific data",'
+        +'"flags":[{"severity":"red or amber or green","title":"specific flag name","detail":"exact numbers and what they indicate"}],'
+        +'"price_forensics":"Analyse the price action pattern for manipulation signals. Is the pump organic or coordinated. Are there sudden vertical moves with no pullback. What does the recent candle pattern suggest about smart money positioning.",'
+        +'"liquidity_forensics":"Assess liquidity health in context of the market cap tier. For this cap size is the liquidity normal or suspicious. Are there signs of liquidity concentration that would allow a rug. Is liquidity spread across chains in a way that suggests obfuscation.",'
+        +'"volume_forensics":"Is volume organic or manipulated. Does the vol/liq ratio suggest wash trading. Is there a suspicious volume pattern like spikes with no price follow-through. Is volume drying up while price holds — classic distribution signal.",'
+        +'"structural_risk":"What makes this token structurally vulnerable. Age risk. Concentration risk. Any honeypot signals. Multi-pair fragmentation.",'
+        +'"timeline":[{"event":"event title","detail":"what the data shows with specific numbers","severity":"red or amber or green"}],'
+        +'"investigator_verdict":"Final 3-sentence ZachXBT-style assessment. What is the threat level. What specific evidence supports this. What should degens do right now."'
+        +'}';
+
+    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:rugPrompt}]})
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,messages:[{role:'user',content:zachPrompt}]})
     });
-    const rugData=await rugRes.json();
-    if(!rugRes.ok)throw new Error(rugData.error?.message||'API error');
-    const rugTxt=rugData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    const rugMatch=rugTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
-    if(!rugMatch)throw new Error('No rug analysis returned');
-    let rugResult;
-    try{rugResult=JSON.parse(rugMatch[0]);}
+    const zachData=await zachRes.json();
+    if(!zachRes.ok)throw new Error(zachData.error?.message||'API error');
+    const zachTxt=zachData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const zachMatch=zachTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
+    if(!zachMatch)throw new Error('No investigation report returned');
+    let report;
+    try{report=JSON.parse(zachMatch[0]);}
     catch(pe){
-      const fixed=rugMatch[0].replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/[\u0000-\u001F\u007F-\u009F]/g,' ').replace(/,(\s*[}\]])/g,'$1');
-      rugResult=JSON.parse(fixed);
+      const fixed=zachMatch[0].replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/[\u0000-\u001F\u007F-\u009F]/g,' ').replace(/,(\s*[}\]])/g,'$1');
+      report=JSON.parse(fixed);
     }
- 
-    const score=Math.min(100,Math.max(0,parseInt(rugResult.rug_score)||0));
+
+    // ── RENDER THREAT SCORE ───────────────────────────────────
+    const score=Math.min(100,Math.max(0,parseInt(report.threat_score)||0));
     const scoreEl=document.getElementById('rug-score-num');
     scoreEl.textContent=score;
     scoreEl.className='rug-score-num '+(score>=70?'rug-score-high':score>=40?'rug-score-mid':'rug-score-low');
     const modeBadge=document.getElementById('rug-mode-badge');
-    modeBadge.textContent=isDead?'DEAD TOKEN / POST-MORTEM':'LIVE TOKEN CHECK';
+    modeBadge.textContent=isDead?'CASE CLOSED — POST MORTEM':'ACTIVE INVESTIGATION';
     modeBadge.className='rug-mode-badge '+(isDead?'mode-dead':'mode-live');
-    document.getElementById('rug-verdict-title').textContent=rugResult.verdict_title||'—';
-    document.getElementById('rug-verdict-sub').textContent=rugResult.verdict_summary||'—';
+    document.getElementById('rug-verdict-title').textContent=report.verdict_title||'—';
+    document.getElementById('rug-verdict-sub').textContent=report.verdict_summary||'—';
     document.getElementById('rug-score-wrap').classList.add('on');
- 
+
+    // ── RENDER EVIDENCE METRICS ────────────────────────────────
     const metricsGrid=document.getElementById('rug-metrics-grid');
     metricsGrid.innerHTML='';
     const metrics=[
       {lbl:'LIQUIDITY',val:fmt(liqUsd),sub:'across '+numPairs+' pair'+(numPairs>1?'s':'')},
-      {lbl:'LIQ / MCAP',val:liqToMcap.toFixed(1)+'%',sub:liqToMcap<2?'DANGER: very thin':(liqToMcap<10?'LOW: watch closely':'OK: decent depth')},
-      {lbl:'VOL / LIQ',val:volToLiq.toFixed(1)+'%',sub:volToLiq>500?'HIGH: potential wash':(volToLiq<5?'LOW: dead volume':'normal range')},
-      {lbl:'TOKEN AGE',val:agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d',sub:agedays<7?'NEW: high risk':agedays<30?'young token':'established'},
-      {lbl:'24H CHANGE',val:fmtPct(chg24h),sub:'6H: '+fmtPct(chg6h)+' 1H: '+fmtPct(chg1h)},
-      {lbl:'DRAWDOWN',val:drawdownPct.toFixed(1)+'%',sub:'from recent high in window'},
-      {lbl:'VOLUME TREND',val:volTrend.toFixed(0)+'%',sub:volTrend<50?'DRYING UP: danger sign':'vs recent average'},
-      {lbl:'MARKET CAP',val:fmt(mcapUsd),sub:pair.chainId||''}
+      {lbl:'LIQ / MCAP',val:liqToMcap.toFixed(1)+'%',sub:liqRiskLabel},
+      {lbl:'VOL / LIQ',val:volToLiq.toFixed(1)+'%',sub:volToLiq>300?'HIGH: wash trading signal':(volToLiq<5?'LOW: dead volume':'normal range')},
+      {lbl:'TOKEN AGE',val:agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d',sub:agedays<3?'VERY NEW: extreme risk':agedays<7?'NEW: high risk':agedays<30?'young':'established'},
+      {lbl:'PRICE CHANGES',val:fmtPct(chg24h),sub:'6H: '+fmtPct(chg6h)+' 1H: '+fmtPct(chg1h)},
+      {lbl:'DRAWDOWN',val:drawdownPct.toFixed(1)+'%',sub:'from recent peak in window'},
+      {lbl:'VOLUME TREND',val:volTrend.toFixed(0)+'%',sub:volTrend<30?'COLLAPSING: exit signal':volTrend<60?'declining: watch closely':'vs recent average'},
+      {lbl:'MARKET CAP',val:fmt(mcapUsd),sub:(mcapUsd>500e6?'mega cap':mcapUsd>100e6?'large cap':mcapUsd>10e6?'mid cap':mcapUsd>1e6?'small cap':'micro cap')+' · '+safe(pair.chainId||'')}
     ];
     metrics.forEach(m=>{metricsGrid.innerHTML+='<div class="metric-block"><div class="metric-lbl">'+safe(m.lbl)+'</div><div class="metric-val">'+safe(m.val)+'</div><div class="metric-sub">'+safe(m.sub)+'</div></div>';});
     document.getElementById('rug-metrics').classList.add('on');
- 
+
+    // ── RENDER FLAGS ───────────────────────────────────────────
     const flagList=document.getElementById('flag-list');
     flagList.innerHTML='';
-    (rugResult.flags||[]).forEach(f=>{
+    (report.flags||[]).forEach(f=>{
       const sev=f.severity==='red'?'flag-red':f.severity==='green'?'flag-green':'flag-amber';
       const lbl=f.severity==='red'?'RED':f.severity==='green'?'OK':'WARN';
       flagList.innerHTML+='<div class="flag-item"><span class="flag-icon '+sev+'">'+lbl+'</span><div class="flag-txt"><div class="flag-title">'+safe(f.title||'')+'</div><div class="flag-desc">'+safe(f.detail||'')+'</div></div></div>';
     });
     document.getElementById('rug-flags').classList.add('on');
- 
-    document.getElementById('pm-liquidity').textContent=rugResult.liquidity_analysis||'—';
-    document.getElementById('pm-volume').textContent=rugResult.volume_analysis||'—';
-    document.getElementById('pm-price').textContent=rugResult.price_analysis||'—';
-    document.getElementById('pm-tokenomics').textContent=rugResult.tokenomics_risk||'—';
- 
-    if(isDead){
-      document.getElementById('pm-section-title').textContent='FORENSIC POST-MORTEM';
-      let extra='<div class="pm-grid" style="margin-top:12px">';
-      extra+='<div class="pm-block"><div class="pm-lbl">CAUSE OF DEATH</div><div class="pm-txt">'+safe(rugResult.cause_of_death||'unknown')+'</div></div>';
-      extra+='<div class="pm-block"><div class="pm-lbl">NARRATIVE THAT PUMPED IT</div><div class="pm-txt">'+safe(rugResult.narrative_that_pumped_it||'unknown')+'</div></div>';
-      extra+='<div class="pm-block"><div class="pm-lbl">WARNING SIGNS MISSED</div><div class="pm-txt">'+safe(rugResult.warning_signs||'unknown')+'</div></div>';
-      extra+='<div class="pm-block"><div class="pm-lbl">LESSONS FOR DEGENS</div><div class="pm-txt">'+safe(rugResult.lessons_for_degens||'unknown')+'</div></div>';
-      extra+='</div>';
-      document.getElementById('pm-extra-grid').innerHTML=extra;
-      const vb=document.getElementById('pm-verdict-box');
-      vb.className='pm-verdict';
+
+    // ── RENDER ZACHXBT REPORT ─────────────────────────────────
+    document.getElementById('zach-token-name').textContent=(pair.baseToken?.name||'unknown')+' ('+safe(pair.baseToken?.symbol||'')+') — '+(isDead?'CLOSED CASE':'ACTIVE CASE');
+    document.getElementById('z-price-forensics').textContent=report.price_forensics||'—';
+    document.getElementById('z-liq-forensics').textContent=report.liquidity_forensics||'—';
+    document.getElementById('z-vol-forensics').textContent=report.volume_forensics||'—';
+    document.getElementById('z-structural').textContent=report.structural_risk||'—';
+
+    // timeline
+    const timelineSection=document.getElementById('zach-timeline-section');
+    const timeline=document.getElementById('zach-timeline');
+    if(report.timeline&&report.timeline.length>0){
+      timeline.innerHTML='';
+      report.timeline.forEach(e=>{
+        const dotClass=e.severity==='red'?'dot-red':e.severity==='green'?'dot-green':'dot-amber';
+        timeline.innerHTML+='<div class="zach-event"><div class="zach-event-dot '+dotClass+'"></div><div class="zach-event-content"><div class="zach-event-title">'+safe(e.event||'')+'</div><div class="zach-event-desc">'+safe(e.detail||'')+'</div></div></div>';
+      });
+      timelineSection.style.display='block';
     }else{
-      document.getElementById('pm-section-title').textContent='AI DEEP ANALYSIS';
-      const vb=document.getElementById('pm-verdict-box');
-      vb.className='pm-verdict'+(score>=70?' ':(score>=40?' caution':' safe'));
+      timelineSection.style.display='none';
     }
-    document.getElementById('pm-verdict-txt').textContent=rugResult.bottom_line||'—';
-    document.getElementById('rug-postmortem').classList.add('on');
- 
+
+    // post-mortem extras for dead tokens
+    const postmortemSection=document.getElementById('zach-postmortem-section');
+    if(isDead){
+      document.getElementById('z-cause').textContent=report.cause_of_death||'—';
+      document.getElementById('z-narrative').textContent=report.narrative_used||'—';
+      document.getElementById('z-warnings').textContent=report.warning_signs||'—';
+      document.getElementById('z-lessons').textContent=report.lessons||'—';
+      postmortemSection.style.display='block';
+    }else{
+      postmortemSection.style.display='none';
+    }
+
+    // verdict strip
+    const vstrip=document.getElementById('verdict-strip');
+    const vtxt=document.getElementById('verdict-strip-txt');
+    vtxt.textContent=report.investigator_verdict||'—';
+    vstrip.className='verdict-strip '+(score>=70?'verdict-strip-guilty':score>=40?'verdict-strip-suspicious':'verdict-strip-innocent');
+
+    document.getElementById('zach-report').classList.add('on');
+
   }catch(e){
     document.getElementById('rug-empty').style.display='block';
     document.getElementById('rug-empty').innerHTML='<p class="err">error: '+safe(e.message)+'</p>';
   }
   document.getElementById('rug-loading').classList.remove('on');
-  btn.disabled=false;btn.textContent='check →';
+  btn.disabled=false;btn.textContent='investigate →';
 }
 </script>
 </body>
