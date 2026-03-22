@@ -1,12 +1,12 @@
 const express = require('express');
 const app = express();
 app.use(express.json({ limit: '50kb' }));
-
+ 
 const rateLimitMap = new Map();
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60 * 1000;
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000;
-
+ 
 function rateLimit(req, res, next) {
   const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || 'unknown';
   const now = Date.now();
@@ -17,10 +17,10 @@ function rateLimit(req, res, next) {
   if (record.count > RATE_LIMIT) return res.status(429).json({ error: 'too many requests' });
   next();
 }
-
+ 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
-
+ 
 async function cacheGet(key) {
   if (!UPSTASH_URL || !UPSTASH_TOKEN) return null;
   try {
@@ -30,7 +30,7 @@ async function cacheGet(key) {
     return JSON.parse(data.result);
   } catch { return null; }
 }
-
+ 
 async function cacheSet(key, value, ttlSeconds) {
   if (!UPSTASH_URL || !UPSTASH_TOKEN) return;
   try {
@@ -41,13 +41,13 @@ async function cacheSet(key, value, ttlSeconds) {
     });
   } catch {}
 }
-
+ 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const HAIKU = 'claude-haiku-4-5-20251001';
-
+ 
 if (!ANTHROPIC_API_KEY) { console.error('ERROR: ANTHROPIC_API_KEY not set'); process.exit(1); }
-
+ 
 async function callClaude(body) {
   const res = await fetch(ANTHROPIC_URL, {
     method: 'POST',
@@ -57,7 +57,7 @@ async function callClaude(body) {
   if (!res.ok) { const err = await res.json(); throw new Error(err.error?.message || 'Anthropic API error'); }
   return res.json();
 }
-
+ 
 app.get('/api/key', rateLimit, (req, res) => {
   const origin = req.headers.referer || req.headers.origin || '';
   if (!origin.includes('ct-pulse.vercel.app') && !origin.includes('localhost')) {
@@ -65,7 +65,7 @@ app.get('/api/key', rateLimit, (req, res) => {
   }
   res.json({ key: ANTHROPIC_API_KEY });
 });
-
+ 
 app.post('/api/narratives', rateLimit, async (req, res) => {
   try {
     const CACHE_KEY = 'ct_narratives_v6';
@@ -78,11 +78,7 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
     }
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const userMsg = 'Today is ' + today + '. You are a crypto researcher tracking emerging tech in blockchain. Return ONLY a valid JSON array, no markdown. Exactly 6 objects covering: AI agents with wallets (Virtuals, ai16z, ElizaOS), agentic commerce and infrastructure, decentralised AI compute, new on-chain behaviours from automation. Name actual projects and teams. Fields: name, summary, hype_score, fundamentals_score, cycle_stage, talk_score, verdict, why_trending, comparable, next_move. cycle_stage must be one of: early, mid-cycle, peak hype, late / cooling. All strings single line no apostrophes. Sort by talk_score descending.';
-    const data = await callClaude({
-      model: HAIKU,
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: userMsg }]
-    });
+    const data = await callClaude({ model: HAIKU, max_tokens: 2000, messages: [{ role: 'user', content: userMsg }] });
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
     const cleaned = txt.replace(/```json/g, '').replace(/```/g, '').trim();
     const match = cleaned.match(/\[[\s\S]*\]/);
@@ -93,5 +89,5 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
     res.json({ narratives, cached: false, cachedAt: payload.timestamp, nextRefresh: payload.timestamp + CACHE_TTL_MS });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
-
+ 
 module.exports = app;
