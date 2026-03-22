@@ -105,9 +105,15 @@ Sort by talk_score descending. Be brutally specific, not generic.` }]
     });
 
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    const match = txt.match(/\[[\s\S]*\]/);
+    const cleaned = txt.replace(/```json/g, '').replace(/```/g, '').trim();
+    const match = cleaned.match(/\[[\s\S]*\]/);
     if (!match) throw new Error('No JSON in Claude response');
-    const narratives = JSON.parse(match[0]);
+    let narratives;
+    try {
+      narratives = JSON.parse(match[0]);
+  } catch (e2) {
+  throw new Error('Claude returned malformed JSON: ' + e2.message);
+}
     const payload = { narratives, timestamp: Date.now() };
     await cacheSet(CACHE_KEY, payload, 4 * 60 * 60);
     res.json({ narratives, cached: false, cachedAt: payload.timestamp, nextRefresh: payload.timestamp + CACHE_TTL_MS });
