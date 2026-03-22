@@ -210,4 +210,8 @@ Return ONLY this JSON (no markdown, no extra text):
 });
  
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`CT Pulse running on port ${PORT}`));
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  app.listen(PORT, () => console.log(`CT Pulse running on port ${PORT}`));
+}
