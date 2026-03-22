@@ -621,7 +621,7 @@ async function analyseCA(){
     const jsonMatch=rawTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
     if(!jsonMatch)throw new Error('No analysis returned');
     const analysis=JSON.parse(jsonMatch[0]);
-    renderAnalysis(analysis, tokenData.marketCap);
+    renderAnalysis(analysis, tokenData.marketCap, pair);
 
   }catch(e){
     document.getElementById('ca-empty').style.display='block';
@@ -631,7 +631,7 @@ async function analyseCA(){
   btn.disabled=false;btn.textContent='analyse →';
 }
 
-function renderAnalysis(a,mcap){
+function renderAnalysis(a,mcap,pair){
   const fb=document.getElementById('formation-badge');
   fb.textContent=a.formation||'—';
   fb.className='formation-badge '+(a.bias==='bullish'?'fb-bull':a.bias==='bearish'?'fb-bear':'fb-neutral');
@@ -653,7 +653,7 @@ function renderAnalysis(a,mcap){
     d.innerHTML='<div class="ez-left"><span class="ez-name">'+safe(ez.label)+'</span><span class="ez-tf">'+safe(ez.timeframe)+'</span></div>'
   +'<div style="display:flex;flex-direction:column;gap:2px;min-width:120px">'
   +'<span class="ez-price '+(ezClass[i]||'ez-ok')+'">'+fmtP(ez.price)+'</span>'
-  +'<span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">mcap '+safe(mcap||'')+'</span>'
+  +'<span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">mcap '+safe(ez.price>0&&pair&&pair.priceUsd&&pair.marketCap?fmt((ez.price/parseFloat(pair.priceUsd))*pair.marketCap):(mcap||''))+'</span>'
   +'</div>'
   +'<span class="ez-reason">'+safe(ez.reasoning)+'</span>';
     ezList.appendChild(d);
