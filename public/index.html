@@ -424,14 +424,14 @@ function toggleN(i){
   if(!was)c.classList.add('expanded');
 }
 
-function calcLevels(cands){
+function calcLevels(cands, livePriceOverride){
   const highs=cands.map(c=>c.high),lows=cands.map(c=>c.low),closes=cands.map(c=>c.close);
   const ph=[],pl=[];
   for(let i=3;i<cands.length-3;i++){
     if(highs[i]>highs[i-1]&&highs[i]>highs[i-2]&&highs[i]>highs[i-3]&&highs[i]>highs[i+1]&&highs[i]>highs[i+2]&&highs[i]>highs[i+3])ph.push(highs[i]);
     if(lows[i]<lows[i-1]&&lows[i]<lows[i-2]&&lows[i]<lows[i-3]&&lows[i]<lows[i+1]&&lows[i]<lows[i+2]&&lows[i]<lows[i+3])pl.push(lows[i]);
   }
-  const cur=closes[closes.length-1];
+  const cur=livePriceOverride||closes[closes.length-1];
   return{support:pl.filter(l=>l<cur).sort((a,b)=>b-a).slice(0,3),resistance:ph.filter(h=>h>cur).sort((a,b)=>a-b).slice(0,3),currentPrice:cur};
 }
 
@@ -564,8 +564,9 @@ async function analyseCA(){
     candles['1h']=await fetchCandles(pair,'1h');
     document.getElementById('ca-msg').textContent=MSGS_CA[2];
     candles['4h']=await fetchCandles(pair,'4h');
-    levels['1h']=calcLevels(candles['1h']);
-    levels['4h']=calcLevels(candles['4h']);
+    const livePrice=parseFloat(pair.priceUsd||0);
+    levels['1h']=calcLevels(candles['1h'],livePrice);
+    levels['4h']=calcLevels(candles['4h'],livePrice);
     drawChart('chart-canvas-1h',candles['1h'],levels['1h']);
     drawChart('chart-canvas-4h',candles['4h'],levels['4h']);
     document.getElementById('chart-section').classList.add('on');
