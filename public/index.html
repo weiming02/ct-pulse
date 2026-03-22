@@ -47,7 +47,7 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .tabs{display:flex;border:1px solid var(--border-strong);margin-bottom:28px}
-.tab{flex:1;font-family:var(--mono);font-size:12px;letter-spacing:0.05em;padding:12px;border:none;background:transparent;color:var(--ink3);cursor:pointer;transition:all 0.15s;border-right:1px solid var(--border-strong)}
+.tab{flex:1;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;padding:12px 8px;border:none;background:transparent;color:var(--ink3);cursor:pointer;transition:all 0.15s;border-right:1px solid var(--border-strong)}
 .tab:last-child{border-right:none}
 .tab.active{background:var(--accent);color:#000;font-weight:500}
 .tab:hover:not(.active){color:var(--ink);background:var(--bg3)}
@@ -134,8 +134,7 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .chart-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
 .legend-item{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--ink3)}
 .legend-swatch{width:14px;height:2px}
-.ls-s{background:rgba(57,255,106,0.7)}.ls-r{background:rgba(255,68,68,0.7)}
-.ls-e{background:rgba(255,170,0,0.7)}.ls-c{background:rgba(240,237,230,0.45)}
+.ls-s{background:rgba(57,255,106,0.7)}.ls-e{background:rgba(255,170,0,0.7)}.ls-c{background:rgba(240,237,230,0.45)}
 .chart-desc{display:none;border-top:1px solid var(--border);padding:12px 14px;background:var(--bg3)}
 .chart-desc.on{display:block}
 .chart-desc-formation{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.06em;margin-bottom:6px}
@@ -172,12 +171,60 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .empty{padding:48px 0;text-align:center}
 .empty p{font-family:var(--mono);font-size:12px;color:var(--ink3);margin-bottom:5px}
 .err{color:var(--red)}
+.rug-score-wrap{display:none;margin-bottom:2px}
+.rug-score-wrap.on{display:block}
+.rug-score-header{background:var(--bg2);border:1px solid var(--border-strong);padding:20px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.rug-mode-badge{font-family:var(--mono);font-size:10px;padding:3px 10px;border:1px solid;letter-spacing:0.06em;margin-bottom:8px;display:inline-block}
+.mode-live{color:var(--amber);border-color:rgba(255,170,0,0.4);background:var(--amber-bg)}
+.mode-dead{color:var(--red);border-color:rgba(255,68,68,0.4);background:var(--red-bg)}
+.rug-dial{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:80px}
+.rug-score-num{font-size:48px;font-weight:800;line-height:1;letter-spacing:-0.04em;font-family:var(--mono)}
+.rug-score-lbl{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;color:var(--ink3)}
+.rug-score-low{color:var(--green)}
+.rug-score-mid{color:var(--amber)}
+.rug-score-high{color:var(--red)}
+.rug-verdict-wrap{flex:1}
+.rug-verdict-title{font-size:18px;font-weight:800;letter-spacing:-0.02em;margin-bottom:6px}
+.rug-verdict-sub{font-size:13px;color:var(--ink2);line-height:1.6}
+.rug-flags{display:none;background:var(--bg2);border:1px solid var(--border-strong);border-top:none;padding:20px 24px;margin-bottom:2px}
+.rug-flags.on{display:block}
+.rug-flags-title{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.1em;margin-bottom:14px}
+.flag-list{display:flex;flex-direction:column;gap:8px}
+.flag-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;background:var(--bg3)}
+.flag-icon{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 6px;border:1px solid;flex-shrink:0;margin-top:1px}
+.flag-red{color:var(--red);border-color:rgba(255,68,68,0.4);background:var(--red-bg)}
+.flag-amber{color:var(--amber);border-color:rgba(255,170,0,0.4);background:var(--amber-bg)}
+.flag-green{color:var(--green);border-color:rgba(57,255,106,0.3);background:var(--green-bg)}
+.flag-txt{flex:1}
+.flag-title{font-size:13px;font-weight:700;margin-bottom:2px}
+.flag-desc{font-size:12px;color:var(--ink2);line-height:1.5}
+.rug-metrics{display:none;background:var(--bg2);border:1px solid var(--border-strong);border-top:none;padding:20px 24px;margin-bottom:2px}
+.rug-metrics.on{display:block}
+.rug-metrics-title{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.1em;margin-bottom:14px}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:2px;margin-bottom:16px}
+.metric-block{background:var(--bg3);padding:12px 14px}
+.metric-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:4px}
+.metric-val{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--ink)}
+.metric-sub{font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:2px}
+.rug-postmortem{display:none;background:var(--bg2);border:1px solid var(--border-strong);border-top:none;padding:20px 24px}
+.rug-postmortem.on{display:block}
+.pm-title{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.1em;margin-bottom:14px}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.pm-block{background:var(--bg3);padding:14px}
+.pm-lbl{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:7px}
+.pm-txt{font-size:13px;color:var(--ink2);line-height:1.6}
+.pm-verdict{background:var(--red);padding:14px 16px}
+.pm-verdict.safe{background:var(--green)}
+.pm-verdict.caution{background:var(--amber)}
+.pm-verdict-lbl{font-family:var(--mono);font-size:10px;color:rgba(0,0,0,0.55);letter-spacing:0.08em;margin-bottom:5px}
+.pm-verdict-txt{font-size:14px;font-weight:700;color:#000;line-height:1.5}
 footer{padding:24px 0 40px;border-top:1px solid var(--border);margin-top:48px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
 @media(max-width:600px){
-  .analysis-grid,.detail-grid{grid-template-columns:1fr}
+  .analysis-grid,.detail-grid,.pm-grid{grid-template-columns:1fr}
   .ncard-detail{padding-left:18px}
   .token-stats{grid-template-columns:repeat(2,1fr)}
+  .rug-score-header{flex-direction:column;align-items:flex-start}
 }
 </style>
 </head>
@@ -201,12 +248,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     <div class="live-dot"><div class="dot"></div><span id="last-updated">not loaded</span></div>
   </div>
 </header>
-
+ 
 <div class="tabs">
   <button class="tab active" id="tab-n" onclick="switchTab('n')">narratives</button>
   <button class="tab" id="tab-ca" onclick="switchTab('ca')">chart analysis</button>
+  <button class="tab" id="tab-rug" onclick="switchTab('rug')">rug check</button>
 </div>
-
+ 
 <div id="pane-n">
   <button class="big-btn" id="narrative-btn" onclick="loadNarratives()">
     <div class="btn-pulse" id="btn-pulse"></div>
@@ -225,7 +273,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     <p>powered by claude + upstash cache.</p>
   </div>
 </div>
-
+ 
 <div id="pane-ca" style="display:none">
   <div class="sl">paste contract address</div>
   <div class="ca-input-row">
@@ -259,7 +307,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     </div>
     <div class="chart-pane active" id="chart-1h">
       <div class="chart-header">
-        <span class="chart-title">1H CHART · support/resistance · entry zone</span>
+        <span class="chart-title">1H CHART · price action · entry zone</span>
         <span class="chart-badge">macro structure from 4H used by AI</span>
       </div>
       <div class="chart-canvas-wrap"><canvas id="chart-canvas-1h"></canvas></div>
@@ -270,14 +318,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
       </div>
       <div class="chart-legend">
         <div class="legend-item"><div class="legend-swatch ls-s"></div>support</div>
-        <div class="legend-item"><div class="legend-swatch ls-r"></div>resistance</div>
         <div class="legend-item"><div class="legend-swatch ls-e"></div>entry zone</div>
         <div class="legend-item"><div class="legend-swatch ls-c"></div>current price</div>
       </div>
     </div>
     <div class="chart-pane" id="chart-4h">
       <div class="chart-header">
-        <span class="chart-title">4H CHART · macro structure · key levels</span>
+        <span class="chart-title">4H CHART · price action · macro structure</span>
         <span class="chart-badge">higher timeframe context</span>
       </div>
       <div class="chart-canvas-wrap"><canvas id="chart-canvas-4h"></canvas></div>
@@ -288,7 +335,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
       </div>
       <div class="chart-legend">
         <div class="legend-item"><div class="legend-swatch ls-s"></div>support</div>
-        <div class="legend-item"><div class="legend-swatch ls-r"></div>resistance</div>
         <div class="legend-item"><div class="legend-swatch ls-e"></div>entry zone</div>
         <div class="legend-item"><div class="legend-swatch ls-c"></div>current price</div>
       </div>
@@ -324,25 +370,77 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     <p>AI reads candles on 1H + 4H and identifies formations + entry zones.</p>
   </div>
 </div>
-
+ 
+<div id="pane-rug" style="display:none">
+  <div class="sl">paste contract address to check</div>
+  <div class="ca-input-row">
+    <input type="text" id="rug-input" placeholder="live token or dead rug — paste CA to find out" onkeydown="if(event.key==='Enter')rugCheck()">
+    <button class="ca-btn" id="rug-btn" onclick="rugCheck()">check →</button>
+  </div>
+  <div class="ca-note">live tokens: rug probability score + warning flags · dead tokens: full post-mortem, cause of death, lessons for degens</div>
+  <div class="loading" id="rug-loading">
+    <div class="ldots"><span></span><span></span><span></span></div>
+    <p id="rug-msg">pulling on-chain data...</p>
+  </div>
+  <div class="rug-score-wrap" id="rug-score-wrap">
+    <div class="rug-score-header">
+      <div class="rug-dial">
+        <div class="rug-score-num" id="rug-score-num">—</div>
+        <div class="rug-score-lbl">RUG SCORE / 100</div>
+      </div>
+      <div class="rug-verdict-wrap">
+        <div id="rug-mode-badge" class="rug-mode-badge mode-live">LIVE TOKEN</div>
+        <div class="rug-verdict-title" id="rug-verdict-title">—</div>
+        <div class="rug-verdict-sub" id="rug-verdict-sub">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="rug-metrics" id="rug-metrics">
+    <div class="rug-metrics-title">ON-CHAIN METRICS</div>
+    <div class="metrics-grid" id="rug-metrics-grid"></div>
+  </div>
+  <div class="rug-flags" id="rug-flags">
+    <div class="rug-flags-title">FLAGS DETECTED</div>
+    <div class="flag-list" id="flag-list"></div>
+  </div>
+  <div class="rug-postmortem" id="rug-postmortem">
+    <div class="pm-title" id="pm-section-title">AI DEEP ANALYSIS</div>
+    <div class="pm-grid" id="pm-main-grid">
+      <div class="pm-block"><div class="pm-lbl">LIQUIDITY HEALTH</div><div class="pm-txt" id="pm-liquidity"></div></div>
+      <div class="pm-block"><div class="pm-lbl">VOLUME PATTERN</div><div class="pm-txt" id="pm-volume"></div></div>
+      <div class="pm-block"><div class="pm-lbl">PRICE ACTION SIGNALS</div><div class="pm-txt" id="pm-price"></div></div>
+      <div class="pm-block"><div class="pm-lbl">TOKENOMICS RISK</div><div class="pm-txt" id="pm-tokenomics"></div></div>
+    </div>
+    <div id="pm-extra-grid"></div>
+    <div class="pm-verdict" id="pm-verdict-box">
+      <div class="pm-verdict-lbl">BOTTOM LINE</div>
+      <div class="pm-verdict-txt" id="pm-verdict-txt">—</div>
+    </div>
+  </div>
+  <div class="empty" id="rug-empty">
+    <p>paste any contract address — live or dead.</p>
+    <p>live tokens get a rug risk score. dead tokens get a full post-mortem.</p>
+  </div>
+</div>
+ 
 <footer>
   <p>CT Pulse · powered by Claude + DEXScreener</p>
   <p>not financial advice · dyor · degens only</p>
 </footer>
 </div>
-
+ 
 <script>
-let charts = {'1h':null,'4h':null};
-let candles = {'1h':[],'4h':[]};
-let levels = {'1h':{support:[],resistance:[]},'4h':{support:[],resistance:[]}};
-let currentPair = null;
-let cachedApiKey = null;
-
+let charts={'1h':null,'4h':null};
+let candles={'1h':[],'4h':[]};
+let levels={'1h':{support:[],resistance:[]},'4h':{support:[],resistance:[]}};
+let currentPair=null;
+let cachedApiKey=null;
+ 
 function safe(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('ctpulse_theme',document.body.classList.contains('light')?'light':'dark');}
 const savedTheme=localStorage.getItem('ctpulse_theme');
 if(savedTheme==='light')document.body.classList.add('light');
-
+ 
 async function getApiKey(){
   if(cachedApiKey)return cachedApiKey;
   const res=await fetch('/api/key');
@@ -351,19 +449,27 @@ async function getApiKey(){
   cachedApiKey=data.key;
   return cachedApiKey;
 }
-
+ 
 const MSGS_N=['scanning for emerging tech narratives...','finding the real signal...','separating alpha from noise...','checking what builders are shipping...'];
 const MSGS_CA=['fetching token data from DEXScreener...','pulling 1H candles...','pulling 4H candles...','sending to AI analyst...','identifying formations + entry zones...'];
-
+const MSGS_RUG=['pulling on-chain data...','analysing liquidity depth...','checking volume patterns...','scanning for warning signs...','running rug probability model...'];
+ 
 function fmt(n){if(!n&&n!==0)return'—';if(n>=1e9)return'$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';return'$'+Number(n).toFixed(2);}
 function fmtP(p){if(!p&&p!==0)return'—';p=Number(p);if(p>=1)return'$'+p.toFixed(4);if(p>=0.01)return'$'+p.toFixed(6);const s=p.toFixed(14);const m=s.match(/^0\.(0*)/);const z=m?m[1].length:0;return'$0.0{'+z+'}'+s.slice(z+2,z+6).replace(/0+$/,'');}
+function fmtPct(n){if(!n&&n!==0)return'—';return(n>=0?'+':'')+Number(n).toFixed(2)+'%';}
 function timeAgo(ts){const d=(Date.now()/1000-ts)/86400;if(d<1)return Math.round(d*24)+'h old';if(d<30)return Math.round(d)+'d old';return Math.round(d/30)+'mo old';}
-function switchTab(t){document.getElementById('tab-n').classList.toggle('active',t==='n');document.getElementById('tab-ca').classList.toggle('active',t==='ca');document.getElementById('pane-n').style.display=t==='n'?'':'none';document.getElementById('pane-ca').style.display=t==='ca'?'':'none';}
+ 
+function switchTab(t){
+  ['n','ca','rug'].forEach(id=>{
+    document.getElementById('tab-'+id).classList.toggle('active',id===t);
+    document.getElementById('pane-'+id).style.display=id===t?'':'none';
+  });
+}
 function switchChart(tf,btn){document.querySelectorAll('.chart-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('chart-1h').classList.toggle('active',tf==='1h');document.getElementById('chart-4h').classList.toggle('active',tf==='4h');}
 function dots(n){let h='';for(let i=0;i<10;i++)h+='<div class="cdot'+(i<n?' on':'')+'"></div>';return h;}
 function talkLabel(n){if(n>=9)return'everywhere on CT';if(n>=7)return'very high buzz';if(n>=5)return'moderate chatter';if(n>=3)return'growing mentions';return'early whispers';}
 function cycleClass(s){s=(s||'').toLowerCase();if(s.includes('early'))return'cyc-early';if(s.includes('peak')||s.includes('late')||s.includes('cool')||s.includes('dead'))return'cyc-late';return'cyc-mid';}
-
+ 
 async function loadNarratives(){
   const btn=document.getElementById('narrative-btn');
   btn.disabled=true;
@@ -388,12 +494,14 @@ async function loadNarratives(){
   btn.disabled=false;
   document.getElementById('btn-pulse').style.cssText='';
 }
-
+ 
 function renderNarratives(data){
   const list=document.getElementById('nlist');
   list.innerHTML='';
   data.forEach((n,i)=>{
     const ts=Math.min(10,Math.max(1,n.talk_score||Math.round(n.hype_score)));
+    const hs=Math.min(10,Math.max(0,parseInt(n.hype_score)%11));
+    const fs=Math.min(10,Math.max(0,parseInt(n.fundamentals_score)%11));
     const el=document.createElement('div');
     el.className='ncard';el.style.animationDelay=(i*0.07)+'s';el.dataset.i=i;
     el.innerHTML='<div class="ncard-main" onclick="toggleN('+i+')">'
@@ -401,13 +509,13 @@ function renderNarratives(data){
       +'<div class="ncard-body">'
       +'<div class="ncard-top"><span class="ncard-name">'+safe(n.name)+'</span><span class="cyc '+cycleClass(n.cycle_stage)+'">'+safe(n.cycle_stage)+'</span></div>'
       +'<p class="ncard-summary">'+safe(n.summary)+'</p>'
-     +'<div class="bar-row"><span class="bar-lbl">hype</span><div class="bar-track"><div class="bar-fill bf-hype" style="width:'+Math.min(100,Math.max(0,parseInt(n.hype_score)%11)*10)+'%"></div></div><span class="bar-num">'+Math.min(10,Math.max(0,parseInt(n.hype_score)%11))+'/10</span></div>'
-+'<div class="bar-row"><span class="bar-lbl">fundamentals</span><div class="bar-track"><div class="bar-fill bf-fund" style="width:'+Math.min(100,Math.max(0,parseInt(n.fundamentals_score)%11)*10)+'%"></div></div><span class="bar-num">'+Math.min(10,Math.max(0,parseInt(n.fundamentals_score)%11))+'/10</span></div>'
+      +'<div class="bar-row"><span class="bar-lbl">hype</span><div class="bar-track"><div class="bar-fill bf-hype" style="width:'+hs*10+'%"></div></div><span class="bar-num">'+hs+'/10</span></div>'
+      +'<div class="bar-row"><span class="bar-lbl">fundamentals</span><div class="bar-track"><div class="bar-fill bf-fund" style="width:'+fs*10+'%"></div></div><span class="bar-num">'+fs+'/10</span></div>'
       +'<div class="chatter"><span class="chatter-lbl">CT chatter</span><div class="cdots">'+dots(ts)+'</div><span class="chatter-txt">'+talkLabel(ts)+'</span></div>'
-      +'</div><div class="ncard-arrow">›</div></div>'
+      +'</div><div class="ncard-arrow">&#x203a;</div></div>'
       +'<div class="ncard-detail" id="nd-'+i+'">'
       +'<div class="detail-grid">'
-      +'<div><div class="dblock-lbl">WHY IT\'S HOT</div><div class="dblock-txt">'+safe(n.why_trending)+'</div></div>'
+      +'<div><div class="dblock-lbl">WHY ITS HOT</div><div class="dblock-txt">'+safe(n.why_trending)+'</div></div>'
       +'<div><div class="dblock-lbl">COMPARABLE TO</div><div class="dblock-txt">'+safe(n.comparable)+'</div></div>'
       +'<div><div class="dblock-lbl">WHAT HAPPENS NEXT</div><div class="dblock-txt">'+safe(n.next_move)+'</div></div>'
       +'<div><div class="dblock-lbl">VERDICT</div><div class="dblock-txt">'+safe(n.verdict)+'</div></div>'
@@ -416,15 +524,15 @@ function renderNarratives(data){
   });
   document.getElementById('n-results').style.display='block';
 }
-
+ 
 function toggleN(i){
   const c=document.querySelector('.ncard[data-i="'+i+'"]');
   const was=c.classList.contains('expanded');
   document.querySelectorAll('.ncard').forEach(x=>x.classList.remove('expanded'));
   if(!was)c.classList.add('expanded');
 }
-
-function calcLevels(cands, livePriceOverride){
+ 
+function calcLevels(cands,livePriceOverride){
   const highs=cands.map(c=>c.high),lows=cands.map(c=>c.low),closes=cands.map(c=>c.close);
   const ph=[],pl=[];
   for(let i=3;i<cands.length-3;i++){
@@ -434,7 +542,7 @@ function calcLevels(cands, livePriceOverride){
   const cur=livePriceOverride||closes[closes.length-1];
   return{support:pl.filter(l=>l<cur).sort((a,b)=>b-a).slice(0,3),resistance:ph.filter(h=>h>cur).sort((a,b)=>a-b).slice(0,3),currentPrice:cur};
 }
-
+ 
 function synthesizeCandles(pair,count,intervalHours){
   const price=parseFloat(pair.priceUsd||0.001);
   const chg=parseFloat(pair.priceChange?.h24||0)/100;
@@ -450,7 +558,7 @@ function synthesizeCandles(pair,count,intervalHours){
   }
   return cands;
 }
-
+ 
 async function fetchCandles(pair,tf){
   const tfMap={'1h':{q:'1h',limit:50,hours:1},'4h':{q:'4h',limit:50,hours:4}};
   const{q,limit,hours}=tfMap[tf];
@@ -461,12 +569,12 @@ async function fetchCandles(pair,tf){
   }catch(e){}
   return synthesizeCandles(pair,limit,hours);
 }
-
+ 
 function drawChart(canvasId,cands,lvls){
   const ctx=document.getElementById(canvasId).getContext('2d');
   const key=canvasId==='chart-canvas-1h'?'1h':'4h';
   if(charts[key])charts[key].destroy();
-  const{support,resistance,currentPrice}=lvls;
+  const{support,currentPrice}=lvls;
   const closes=cands.map(c=>c.close);
   const labels=cands.map(c=>{const d=new Date(c.timestamp*1000);return(d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':00';});
   const isUp=closes[closes.length-1]>=closes[0];
@@ -476,10 +584,7 @@ function drawChart(canvasId,cands,lvls){
     options:{
       responsive:true,maintainAspectRatio:false,animation:{duration:500},
       interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{backgroundColor:'#1c1c1c',borderColor:'rgba(240,237,230,0.1)',borderWidth:1,titleFont:{family:'JetBrains Mono',size:10},bodyFont:{family:'JetBrains Mono',size:11},callbacks:{label:item=>' '+fmtP(item.raw)}}
-      },
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1c1c1c',borderColor:'rgba(240,237,230,0.1)',borderWidth:1,titleFont:{family:'JetBrains Mono',size:10},bodyFont:{family:'JetBrains Mono',size:11},callbacks:{label:item=>' '+fmtP(item.raw)}}},
       scales:{
         x:{ticks:{maxTicksLimit:7,color:'#585850',font:{family:'JetBrains Mono',size:9},maxRotation:0},grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.06)'}},
         y:{ticks:{color:'#585850',font:{family:'JetBrains Mono',size:9},callback:v=>fmtP(v)},grid:{color:'rgba(255,255,255,0.03)'},border:{color:'rgba(255,255,255,0.06)'}}
@@ -492,15 +597,12 @@ function drawChart(canvasId,cands,lvls){
         if(!ca)return;
         const W=ca.right-ca.left;
         if(support.length>0){
-  const py=y.getPixelForValue(support[0]);
-  c.save();c.setLineDash([4,3]);c.strokeStyle='rgba(57,255,106,0.55)';c.lineWidth=1.5;
-  c.beginPath();c.moveTo(ca.left,py);c.lineTo(ca.right,py);c.stroke();
-  c.setLineDash([]);c.fillStyle='rgba(57,255,106,0.85)';c.font='9px JetBrains Mono';c.textAlign='left';
-  c.fillText('S1 '+fmtP(support[0]),ca.left+4,py-4);c.restore();
-}
-        if(support.length>0){
-          const ez=support[0];
-          const yT=y.getPixelForValue(ez*1.018),yB=y.getPixelForValue(ez*0.982);
+          const py=y.getPixelForValue(support[0]);
+          c.save();c.setLineDash([4,3]);c.strokeStyle='rgba(57,255,106,0.55)';c.lineWidth=1.5;
+          c.beginPath();c.moveTo(ca.left,py);c.lineTo(ca.right,py);c.stroke();
+          c.setLineDash([]);c.fillStyle='rgba(57,255,106,0.85)';c.font='9px JetBrains Mono';c.textAlign='left';
+          c.fillText('S1 '+fmtP(support[0]),ca.left+4,py-4);c.restore();
+          const yT=y.getPixelForValue(support[0]*1.018),yB=y.getPixelForValue(support[0]*0.982);
           c.save();c.fillStyle='rgba(255,170,0,0.08)';c.fillRect(ca.left,yT,W,yB-yT);
           c.strokeStyle='rgba(255,170,0,0.35)';c.lineWidth=1;c.strokeRect(ca.left,yT,W,yB-yT);
           c.fillStyle='rgba(255,170,0,0.8)';c.font='9px JetBrains Mono';c.textAlign='left';
@@ -517,7 +619,7 @@ function drawChart(canvasId,cands,lvls){
   });
   charts[key]=chart;
 }
-
+ 
 async function analyseCA(){
   const ca=document.getElementById('ca-input').value.trim();
   if(!ca)return;
@@ -528,17 +630,14 @@ async function analyseCA(){
   ['token-strip','chart-section','analysis-card'].forEach(id=>document.getElementById(id).classList.remove('on'));
   document.getElementById('ca-empty').style.display='none';
   Object.values(charts).forEach(c=>{if(c)c.destroy();});
-  charts={'1h':null,'4h':null};
-  candles={'1h':[],'4h':[]};
+  charts={'1h':null,'4h':null};candles={'1h':[],'4h':[]};
   levels={'1h':{support:[],resistance:[]},'4h':{support:[],resistance:[]}};
-
   try{
     const dsr=await fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca);
     const dsd=await dsr.json();
     if(!dsd.pairs||dsd.pairs.length===0)throw new Error('token not found — check the contract address');
     const pair=dsd.pairs.sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0];
     currentPair=pair;
-
     const chg=parseFloat(pair.priceChange?.h24||0);
     document.getElementById('t-name').textContent=pair.baseToken?.name||'unknown';
     document.getElementById('t-ticker').textContent='$'+(pair.baseToken?.symbol||'');
@@ -552,7 +651,6 @@ async function analyseCA(){
     document.getElementById('t-mcap').textContent=pair.marketCap?fmt(pair.marketCap):'—';
     document.getElementById('t-age').textContent=pair.pairCreatedAt?timeAgo(pair.pairCreatedAt/1000):'—';
     document.getElementById('token-strip').classList.add('on');
-
     document.getElementById('ca-msg').textContent=MSGS_CA[1];
     candles['1h']=await fetchCandles(pair,'1h');
     document.getElementById('ca-msg').textContent=MSGS_CA[2];
@@ -564,70 +662,39 @@ async function analyseCA(){
     drawChart('chart-canvas-4h',candles['4h'],levels['4h']);
     document.getElementById('chart-section').classList.add('on');
     document.getElementById('ca-msg').textContent=MSGS_CA[3];
-
     const tokenData={
-  name:pair.baseToken?.name||'unknown',
-  symbol:pair.baseToken?.symbol||'',
-  chain:pair.chainId||'',
-  price:fmtP(pair.priceUsd),
-  marketCap:pair.marketCap?fmt(pair.marketCap):'unknown',
-  change24h:chg.toFixed(2),
-  liquidity:fmt(pair.liquidity?.usd),
-  age:pair.pairCreatedAt?timeAgo(pair.pairCreatedAt/1000):'unknown'
-};
-
-    const fmtLvls=(lvl)=>({
-      support:lvl.support.map(s=>fmtP(s)),
-      resistance:lvl.resistance.map(r=>fmtP(r))
-    });
-    const s1h=fmtLvls(levels['1h']);
-    const s4h=fmtLvls(levels['4h']);
+      name:pair.baseToken?.name||'unknown',symbol:pair.baseToken?.symbol||'',
+      chain:pair.chainId||'',price:fmtP(pair.priceUsd),
+      marketCap:pair.marketCap?fmt(pair.marketCap):'unknown',
+      change24h:chg.toFixed(2),liquidity:fmt(pair.liquidity?.usd),
+      age:pair.pairCreatedAt?timeAgo(pair.pairCreatedAt/1000):'unknown'
+    };
+    const fmtLvls=(lvl)=>({support:lvl.support.map(s=>fmtP(s)),resistance:lvl.resistance.map(r=>fmtP(r))});
+    const s1h=fmtLvls(levels['1h']);const s4h=fmtLvls(levels['4h']);
     const c1h=candles['1h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
     const c4h=candles['4h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
-
     const apiKey=await getApiKey();
-    const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. Entry zones must always be BELOW current price for bearish bias, ABOVE current price for bullish bias. Current price is '+tokenData.price+'. '
+    const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. Entry zones must always be BELOW current price for bearish bias, ABOVE current price for bullish bias. Current price is '+parseFloat(pair.priceUsd).toFixed(10)+'. '
       +'TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+parseFloat(pair.priceUsd).toFixed(10)+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' '
-      +'1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+' '
-      +'4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+' '
-      +'1H_CLOSES: '+c1h.join(',')+' 4H_CLOSES: '+c4h.join(',')+' '
+      +'1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+'  4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+'  1H_CLOSES: '+c1h.join(',')+' 4H_CLOSES: '+c4h.join(',')+' '
       +'Return this JSON: {"formation":"name","bias":"bullish or bearish or neutral","pattern_description":"4H structure and 1H timing and meaning","momentum":"pressure and conviction","key_levels":"levels with prices and note the MCAP of '+tokenData.marketCap+' for context on liquidity risk","volume_story":"accumulation or distribution relative to the '+tokenData.marketCap+' marketcap","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for position sizing here"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for liquidity risk here"}],"invalidation":"price and meaning","verdict":"honest take including whether the '+tokenData.marketCap+' MCAP is appropriate risk for this setup"}';
-
     const analysisRes=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',
-        max_tokens:800,
-        messages:[{role:'user',content:prompt}]
-      })
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,messages:[{role:'user',content:prompt}]})
     });
-
     const analysisData=await analysisRes.json();
     if(!analysisRes.ok)throw new Error(analysisData.error?.message||'API error');
     const rawTxt=analysisData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
     const jsonMatch=rawTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
     if(!jsonMatch)throw new Error('No analysis returned');
     let analysis;
-try {
-  analysis=JSON.parse(jsonMatch[0]);
-} catch(parseErr) {
-  const fixedJson=jsonMatch[0]
-    .replace(/[\u2018\u2019\u2032]/g,"'")
-    .replace(/[\u201C\u201D]/g,'"')
-    .replace(/[\u2013\u2014\u2015]/g,'-')
-    .replace(/[\u0000-\u001F\u007F-\u009F]/g,' ')
-    .replace(/,(\s*[}\]])/g,'$1')
-    .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g,'$1"$2":');
-  analysis=JSON.parse(fixedJson);
-}
-    renderAnalysis(analysis, tokenData.marketCap, pair);
-
+    try{analysis=JSON.parse(jsonMatch[0]);}
+    catch(pe){
+      const fixed=jsonMatch[0].replace(/[\u2018\u2019\u2032]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\u2013\u2014\u2015]/g,'-').replace(/[\u0000-\u001F\u007F-\u009F]/g,' ').replace(/,(\s*[}\]])/g,'$1');
+      analysis=JSON.parse(fixed);
+    }
+    renderAnalysis(analysis,tokenData.marketCap,pair);
   }catch(e){
     document.getElementById('ca-empty').style.display='block';
     document.getElementById('ca-empty').innerHTML='<p class="err">error: '+safe(e.message)+'</p>';
@@ -635,7 +702,7 @@ try {
   document.getElementById('ca-loading').classList.remove('on');
   btn.disabled=false;btn.textContent='analyse →';
 }
-
+ 
 function renderAnalysis(a,mcap,pair){
   const fb=document.getElementById('formation-badge');
   fb.textContent=a.formation||'—';
@@ -655,19 +722,20 @@ function renderAnalysis(a,mcap,pair){
   (a.entry_zones||[]).forEach((ez,i)=>{
     const d=document.createElement('div');
     d.className='ez-row';
+    const entryMcap=(ez.price>0&&pair&&pair.priceUsd&&pair.marketCap)?(()=>{const base=(ez.price/parseFloat(pair.priceUsd))*pair.marketCap;return fmt(base*0.97)+' to '+fmt(base*1.03);})():(mcap||'');
     d.innerHTML='<div class="ez-left"><span class="ez-name">'+safe(ez.label)+'</span><span class="ez-tf">'+safe(ez.timeframe)+'</span></div>'
-  +'<div style="display:flex;flex-direction:column;gap:2px;min-width:120px">'
-  +'<span class="ez-price '+(ezClass[i]||'ez-ok')+'">'+fmtP(ez.price)+'</span>'
-  +'<span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">'+safe((()=>{if(ez.price>0&&pair&&pair.priceUsd&&pair.marketCap){const base=(ez.price/parseFloat(pair.priceUsd))*pair.marketCap;const lo=fmt(base*0.97);const hi=fmt(base*1.03);return'mcap '+lo+' to '+hi;}return'mcap '+(mcap||'');})())+'</span>'
-  +'</div>'
-  +'<span class="ez-reason">'+safe(ez.reasoning)+'</span>';
+      +'<div style="display:flex;flex-direction:column;gap:2px;min-width:120px">'
+      +'<span class="ez-price '+(ezClass[i]||'ez-ok')+'">'+fmtP(ez.price)+'</span>'
+      +'<span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">mcap '+safe(entryMcap)+'</span>'
+      +'</div>'
+      +'<span class="ez-reason">'+safe(ez.reasoning)+'</span>';
     ezList.appendChild(d);
   });
   document.getElementById('analysis-card').classList.add('on');
   const biasClass=a.bias==='bullish'?'chart-desc-bull':a.bias==='bearish'?'chart-desc-bear':'chart-desc-neutral';
   const formationText=(a.bias||'neutral').toUpperCase()+' — '+(a.formation||'');
   const firstEZ=(a.entry_zones||[])[0];
-  const entryText=firstEZ?'ideal entry: '+fmtP(firstEZ.price)+' · '+(firstEZ.reasoning||''):'no clear entry zone identified';
+  const entryText=firstEZ?'ideal entry: '+fmtP(firstEZ.price)+' - '+(firstEZ.reasoning||''):'no clear entry zone identified';
   ['1h','4h'].forEach(tf=>{
     const desc=document.getElementById('chart-desc-'+tf);
     const form=document.getElementById('chart-desc-formation-'+tf);
@@ -679,6 +747,165 @@ function renderAnalysis(a,mcap,pair){
     entry.textContent=entryText;
     desc.classList.add('on');
   });
+}
+ 
+async function rugCheck(){
+  const ca=document.getElementById('rug-input').value.trim();
+  if(!ca)return;
+  const btn=document.getElementById('rug-btn');
+  btn.disabled=true;btn.textContent='checking...';
+  document.getElementById('rug-loading').classList.add('on');
+  document.getElementById('rug-msg').textContent=MSGS_RUG[0];
+  ['rug-score-wrap','rug-metrics','rug-flags','rug-postmortem'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById('pm-extra-grid').innerHTML='';
+  document.getElementById('rug-empty').style.display='none';
+  try{
+    document.getElementById('rug-msg').textContent=MSGS_RUG[1];
+    const dsr=await fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca);
+    const dsd=await dsr.json();
+    if(!dsd.pairs||dsd.pairs.length===0)throw new Error('token not found — check the contract address');
+    const pairs=dsd.pairs.sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0));
+    const pair=pairs[0];
+    const totalLiquidity=pairs.reduce((s,p)=>s+(p.liquidity?.usd||0),0);
+    const totalVolume24h=pairs.reduce((s,p)=>s+(p.volume?.h24||0),0);
+    document.getElementById('rug-msg').textContent=MSGS_RUG[2];
+    const rugCandles=await fetchCandles(pair,'1h');
+    const rugCandles4h=await fetchCandles(pair,'4h');
+    document.getElementById('rug-msg').textContent=MSGS_RUG[3];
+    const liqToMcap=pair.marketCap>0?(totalLiquidity/pair.marketCap)*100:0;
+    const volToLiq=totalLiquidity>0?(totalVolume24h/totalLiquidity)*100:0;
+    const chg1h=parseFloat(pair.priceChange?.h1||0);
+    const chg6h=parseFloat(pair.priceChange?.h6||0);
+    const chg24h=parseFloat(pair.priceChange?.h24||0);
+    const agedays=pair.pairCreatedAt?(Date.now()/1000-pair.pairCreatedAt/1000)/86400:999;
+    const closes1h=rugCandles.map(c=>c.close);
+    const closes4h=rugCandles4h.map(c=>c.close);
+    const vols1h=rugCandles.map(c=>c.volume||0);
+    const recentClose=closes1h[closes1h.length-1]||0;
+    const maxClose=Math.max(...closes1h);
+    const drawdownPct=maxClose>0?((maxClose-recentClose)/maxClose)*100:0;
+    const avgVol=vols1h.slice(-20).reduce((a,b)=>a+b,0)/20;
+    const recentVol=vols1h.slice(-3).reduce((a,b)=>a+b,0)/3;
+    const volTrend=avgVol>0?(recentVol/avgVol)*100:100;
+    const liqUsd=totalLiquidity;
+    const mcapUsd=pair.marketCap||0;
+    const numPairs=pairs.length;
+    const isDead=liqUsd<5000||drawdownPct>85||volTrend<5;
+    const mode=isDead?'postmortem':'livecheck';
+    document.getElementById('rug-msg').textContent=MSGS_RUG[4];
+    const apiKey=await getApiKey();
+    const rugPrompt=isDead
+      ?'You are a crypto forensics expert doing a post-mortem on a dead or rugged token. Return ONLY a raw JSON object, no markdown, no code blocks, only double quotes, no apostrophes, no newlines inside strings.'
+        +' TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+'. '
+        +' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)
+        +' MARKET CAP: '+fmt(mcapUsd)
+        +' REMAINING LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs'
+        +' LIQUIDITY TO MCAP RATIO: '+liqToMcap.toFixed(2)+'%'
+        +' DRAWDOWN FROM PEAK IN WINDOW: '+drawdownPct.toFixed(1)+'%'
+        +' VOLUME TREND VS AVG: '+volTrend.toFixed(0)+'%'
+        +' PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)
+        +' TOKEN AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' old'
+        +' LAST 15 x 1H CLOSES: '+closes1h.slice(-15).map(c=>+Number(c).toFixed(10)).join(',')
+        +' LAST 10 x 4H CLOSES: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')
+        +' Return this JSON: {"rug_score":100,"mode":"postmortem","verdict_title":"short verdict like RUGGED or DEAD or ABANDONED","verdict_summary":"2 sentences on what happened","flags":[{"severity":"red","title":"flag title","detail":"specific data"}],"liquidity_analysis":"how liquidity was drained","volume_analysis":"volume pattern before death - pump and dump or slow bleed or sudden rug","price_analysis":"how the price died - describe the pattern","tokenomics_risk":"structural weaknesses that made this vulnerable","cause_of_death":"single main reason this token died - rug pull or team exit or narrative died or no organic demand","narrative_that_pumped_it":"what hype story got people to buy this","warning_signs":"on-chain and chart warning signs savvy degens should have seen before collapse","lessons_for_degens":"3 specific actionable lessons this token teaches about avoiding rugs","bottom_line":"3 sentence honest verdict on what happened and what to learn"}'
+      :'You are a crypto rug pull and scam detection expert analysing a LIVE token. Return ONLY a raw JSON object, no markdown, no code blocks, only double quotes, no apostrophes, no newlines inside strings.'
+        +' TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+'. '
+        +' CURRENT PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)
+        +' MARKET CAP: '+fmt(mcapUsd)
+        +' TOTAL LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs'
+        +' LIQUIDITY TO MCAP RATIO: '+liqToMcap.toFixed(2)+'%'
+        +' 24H VOLUME: '+fmt(totalVolume24h)
+        +' VOLUME TO LIQUIDITY RATIO: '+volToLiq.toFixed(2)+'%'
+        +' PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)
+        +' TOKEN AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' old'
+        +' DRAWDOWN FROM RECENT HIGH: '+drawdownPct.toFixed(1)+'%'
+        +' RECENT VOLUME TREND: '+volTrend.toFixed(0)+'% of average'
+        +' LAST 15 x 1H CLOSES: '+closes1h.slice(-15).map(c=>+Number(c).toFixed(10)).join(',')
+        +' LAST 10 x 4H CLOSES: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')
+        +' Return this JSON: {"rug_score":0,"mode":"livecheck","verdict_title":"short 4-6 word verdict","verdict_summary":"2 sentences on overall risk","flags":[{"severity":"red or amber or green","title":"flag title","detail":"specific data point"}],"liquidity_analysis":"2 sentences on liquidity depth and removal risk","volume_analysis":"2 sentences on volume patterns and wash trading signs","price_analysis":"2 sentences on price action warning signs","tokenomics_risk":"2 sentences on mcap vs liquidity ratio and age risk","bottom_line":"3 sentences honest assessment of rug risk"}';
+ 
+    const rugRes=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:rugPrompt}]})
+    });
+    const rugData=await rugRes.json();
+    if(!rugRes.ok)throw new Error(rugData.error?.message||'API error');
+    const rugTxt=rugData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    const rugMatch=rugTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
+    if(!rugMatch)throw new Error('No rug analysis returned');
+    let rugResult;
+    try{rugResult=JSON.parse(rugMatch[0]);}
+    catch(pe){
+      const fixed=rugMatch[0].replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/[\u0000-\u001F\u007F-\u009F]/g,' ').replace(/,(\s*[}\]])/g,'$1');
+      rugResult=JSON.parse(fixed);
+    }
+ 
+    const score=Math.min(100,Math.max(0,parseInt(rugResult.rug_score)||0));
+    const scoreEl=document.getElementById('rug-score-num');
+    scoreEl.textContent=score;
+    scoreEl.className='rug-score-num '+(score>=70?'rug-score-high':score>=40?'rug-score-mid':'rug-score-low');
+    const modeBadge=document.getElementById('rug-mode-badge');
+    modeBadge.textContent=isDead?'DEAD TOKEN / POST-MORTEM':'LIVE TOKEN CHECK';
+    modeBadge.className='rug-mode-badge '+(isDead?'mode-dead':'mode-live');
+    document.getElementById('rug-verdict-title').textContent=rugResult.verdict_title||'—';
+    document.getElementById('rug-verdict-sub').textContent=rugResult.verdict_summary||'—';
+    document.getElementById('rug-score-wrap').classList.add('on');
+ 
+    const metricsGrid=document.getElementById('rug-metrics-grid');
+    metricsGrid.innerHTML='';
+    const metrics=[
+      {lbl:'LIQUIDITY',val:fmt(liqUsd),sub:'across '+numPairs+' pair'+(numPairs>1?'s':'')},
+      {lbl:'LIQ / MCAP',val:liqToMcap.toFixed(1)+'%',sub:liqToMcap<2?'DANGER: very thin':(liqToMcap<10?'LOW: watch closely':'OK: decent depth')},
+      {lbl:'VOL / LIQ',val:volToLiq.toFixed(1)+'%',sub:volToLiq>500?'HIGH: potential wash':(volToLiq<5?'LOW: dead volume':'normal range')},
+      {lbl:'TOKEN AGE',val:agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d',sub:agedays<7?'NEW: high risk':agedays<30?'young token':'established'},
+      {lbl:'24H CHANGE',val:fmtPct(chg24h),sub:'6H: '+fmtPct(chg6h)+' 1H: '+fmtPct(chg1h)},
+      {lbl:'DRAWDOWN',val:drawdownPct.toFixed(1)+'%',sub:'from recent high in window'},
+      {lbl:'VOLUME TREND',val:volTrend.toFixed(0)+'%',sub:volTrend<50?'DRYING UP: danger sign':'vs recent average'},
+      {lbl:'MARKET CAP',val:fmt(mcapUsd),sub:pair.chainId||''}
+    ];
+    metrics.forEach(m=>{metricsGrid.innerHTML+='<div class="metric-block"><div class="metric-lbl">'+safe(m.lbl)+'</div><div class="metric-val">'+safe(m.val)+'</div><div class="metric-sub">'+safe(m.sub)+'</div></div>';});
+    document.getElementById('rug-metrics').classList.add('on');
+ 
+    const flagList=document.getElementById('flag-list');
+    flagList.innerHTML='';
+    (rugResult.flags||[]).forEach(f=>{
+      const sev=f.severity==='red'?'flag-red':f.severity==='green'?'flag-green':'flag-amber';
+      const lbl=f.severity==='red'?'RED':f.severity==='green'?'OK':'WARN';
+      flagList.innerHTML+='<div class="flag-item"><span class="flag-icon '+sev+'">'+lbl+'</span><div class="flag-txt"><div class="flag-title">'+safe(f.title||'')+'</div><div class="flag-desc">'+safe(f.detail||'')+'</div></div></div>';
+    });
+    document.getElementById('rug-flags').classList.add('on');
+ 
+    document.getElementById('pm-liquidity').textContent=rugResult.liquidity_analysis||'—';
+    document.getElementById('pm-volume').textContent=rugResult.volume_analysis||'—';
+    document.getElementById('pm-price').textContent=rugResult.price_analysis||'—';
+    document.getElementById('pm-tokenomics').textContent=rugResult.tokenomics_risk||'—';
+ 
+    if(isDead){
+      document.getElementById('pm-section-title').textContent='FORENSIC POST-MORTEM';
+      let extra='<div class="pm-grid" style="margin-top:12px">';
+      extra+='<div class="pm-block"><div class="pm-lbl">CAUSE OF DEATH</div><div class="pm-txt">'+safe(rugResult.cause_of_death||'unknown')+'</div></div>';
+      extra+='<div class="pm-block"><div class="pm-lbl">NARRATIVE THAT PUMPED IT</div><div class="pm-txt">'+safe(rugResult.narrative_that_pumped_it||'unknown')+'</div></div>';
+      extra+='<div class="pm-block"><div class="pm-lbl">WARNING SIGNS MISSED</div><div class="pm-txt">'+safe(rugResult.warning_signs||'unknown')+'</div></div>';
+      extra+='<div class="pm-block"><div class="pm-lbl">LESSONS FOR DEGENS</div><div class="pm-txt">'+safe(rugResult.lessons_for_degens||'unknown')+'</div></div>';
+      extra+='</div>';
+      document.getElementById('pm-extra-grid').innerHTML=extra;
+      const vb=document.getElementById('pm-verdict-box');
+      vb.className='pm-verdict';
+    }else{
+      document.getElementById('pm-section-title').textContent='AI DEEP ANALYSIS';
+      const vb=document.getElementById('pm-verdict-box');
+      vb.className='pm-verdict'+(score>=70?' ':(score>=40?' caution':' safe'));
+    }
+    document.getElementById('pm-verdict-txt').textContent=rugResult.bottom_line||'—';
+    document.getElementById('rug-postmortem').classList.add('on');
+ 
+  }catch(e){
+    document.getElementById('rug-empty').style.display='block';
+    document.getElementById('rug-empty').innerHTML='<p class="err">error: '+safe(e.message)+'</p>';
+  }
+  document.getElementById('rug-loading').classList.remove('on');
+  btn.disabled=false;btn.textContent='check →';
 }
 </script>
 </body>
