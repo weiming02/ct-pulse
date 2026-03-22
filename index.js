@@ -47,7 +47,8 @@ async function cacheSet(key, value, ttlSeconds) {
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-sonnet-4-5';
+const HAIKU = 'claude-haiku-4-5-20251001';
+const SONNET = 'claude-sonnet-4-5';
 
 if (!ANTHROPIC_API_KEY) { console.error('ERROR: ANTHROPIC_API_KEY not set'); process.exit(1); }
 
@@ -63,7 +64,7 @@ async function callClaude(body) {
 
 app.post('/api/narratives', rateLimit, async (req, res) => {
   try {
-    const CACHE_KEY = 'ct_narratives_v1';
+    const CACHE_KEY = 'ct_narratives_v2';
     const cached = await cacheGet(CACHE_KEY);
     if (cached && cached.narratives && cached.timestamp) {
       const age = Date.now() - cached.timestamp;
@@ -74,7 +75,7 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
 
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const data = await callClaude({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 600,
+      model: SONNET, max_tokens: 2000,
       messages: [{ role: 'user', content: `Today is ${today}. You are a degenerate crypto trader who spends 16 hours a day on Crypto Twitter, pump.fun, and dexscreener. You know every memecoin meta, every AI agent narrative, every CT influencer call. Your job is to give the REAL picture of what degens are actually aping into right now.
 
 Focus ONLY on:
@@ -100,7 +101,7 @@ Return ONLY a valid JSON array, no markdown, no extra text. Exactly 6 objects:
   "comparable": "what past memecoin or crypto narrative does this remind you of, what happened to that one",
   "next_move": "honest degen prediction — pump continues, rotation incoming, or rug incoming and why"
 }
-Sort by talk_score descending. Be brutally specific, not generic.`
+Sort by talk_score descending. Be brutally specific, not generic.` }]
     });
 
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
@@ -120,30 +121,32 @@ app.post('/api/analyse', rateLimit, async (req, res) => {
     if (!Array.isArray(candles1h) || !Array.isArray(candles4h)) return res.status(400).json({ error: 'candles must be arrays' });
     if (candles1h.length > 100 || candles4h.length > 100) return res.status(400).json({ error: 'too many candles' });
 
-    const summarise = (candles) => candles.slice(-30).map(c => ({
-  t: new Date(c.timestamp * 1000).toISOString().slice(11, 16),
-  o: +Number(c.open).toFixed(6),
-  h: +Number(c.high).toFixed(6),
-  l: +Number(c.low).toFixed(6),
-  c: +Number(c.close).toFixed(6)
-}));
-    const fmtLevels = (lvls) => ({ support: lvls.support.map((s, i) => `S${i + 1}: ${s}`).join(', ') || 'none clear', resistance: lvls.resistance.map((r, i) => `R${i + 1}: ${r}`).join(', ') || 'none clear' });
+    const summarise = (candles) => candles.slice(-20).map(c => ({
+      t: new Date(c.timestamp * 1000).toISOString().slice(11, 16),
+      o: +Number(c.open).toFixed(6),
+      h: +Number(c.high).toFixed(6),
+      l: +Number(c.low).toFixed(6),
+      c: +Number(c.close).toFixed(6)
+    }));
+
+    const fmtLevels = (lvls) => ({
+      support: lvls.support.map((s, i) => `S${i + 1}: ${s}`).join(', ') || 'none',
+      resistance: lvls.resistance.map((r, i) => `R${i + 1}: ${r}`).join(', ') || 'none'
+    });
+
     const l1h = fmtLevels(levels1h);
     const l4h = fmtLevels(levels4h);
 
     const prompt = `Crypto TA analyst. Return ONLY valid JSON, no markdown.
-
 TOKEN: ${tokenData.name} ($${tokenData.symbol}) | ${tokenData.chain}
 PRICE: ${tokenData.price} | 24H: ${tokenData.change24h}% | LIQ: ${tokenData.liquidity} | AGE: ${tokenData.age}
 1H: support ${l1h.support} | resistance ${l1h.resistance}
 4H: support ${l4h.support} | resistance ${l4h.resistance}
-1H CANDLES (last 30): ${JSON.stringify(summarise(candles1h))}
-4H CANDLES (last 30): ${JSON.stringify(summarise(candles4h))}
+1H CANDLES: ${JSON.stringify(summarise(candles1h))}
+4H CANDLES: ${JSON.stringify(summarise(candles4h))}
+Return ONLY this JSON: {"formation":"pattern name","bias":"bullish|bearish|neutral","pattern_description":"3 sentences on chart structure","momentum":"2 sentences on pressure","key_levels":"key levels with prices","volume_story":"2 sentences on volume","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why"}],"invalidation":"price + meaning","verdict":"2 sentence honest take"}`;
 
-JSON response:
-{"formation":"pattern name","bias":"bullish|bearish|neutral","pattern_description":"3 sentences: 4H structure + 1H timing + what it means","momentum":"2 sentences on buying vs selling pressure","key_levels":"support and resistance levels with prices","volume_story":"2 sentences on volume","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why"}],"invalidation":"price + what it means","verdict":"2 sentence honest take"}`;
-
-    const data = await callClaude({ model: MODEL, max_tokens: 1500, messages: [{ role: 'user', content: prompt }] });
+    const data = await callClaude({ model: HAIKU, max_tokens: 600, messages: [{ role: 'user', content: prompt }] });
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
     const match = txt.match(/\{[\s\S]*\}/);
     if (!match) throw new Error('No analysis in Claude response');
