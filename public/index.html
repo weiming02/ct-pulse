@@ -581,7 +581,9 @@ async function analyseCA() {
   ['token-strip','chart-section','analysis-card'].forEach(id => document.getElementById(id).classList.remove('on'));
   document.getElementById('ca-empty').style.display='none';
   Object.values(charts).forEach(c => { if(c) c.destroy(); });
-  charts = {'1h':null,'4h':null};
+charts = {'1h':null,'4h':null};
+candles = {'1h':[],'4h':[]};
+levels = {'1h':{support:[],resistance:[]},'4h':{support:[],resistance:[]}};
 
   try {
     const dsr = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${ca}`);
