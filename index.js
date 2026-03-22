@@ -62,6 +62,16 @@ async function callClaude(body) {
   return res.json();
 }
 
+// ── KEY ROUTE — safely expose API key to own frontend only ────
+app.get('/api/key', (req, res) => {
+  const origin = req.headers.referer || req.headers.origin || '';
+  if (!origin.includes('ct-pulse.vercel.app') && !origin.includes('localhost')) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  res.json({ key: ANTHROPIC_API_KEY });
+});
+
+// ── NARRATIVES ROUTE (cached 4h) ──────────────────────────────
 app.post('/api/narratives', rateLimit, async (req, res) => {
   try {
     const CACHE_KEY = 'ct_narratives_v5';
@@ -75,8 +85,8 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
 
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const data = await callClaude({
-      model: HAIKU, max_tokens: 1500,
-      messages: [{ role: 'user', content: `Today is ${today}. You are a crypto researcher who tracks emerging technology narratives in the blockchain space. You follow CT closely but you care about SIGNAL not noise — the real tech shifts that are creating new markets. Your job is to identify the most important emerging tech narratives in crypto right now that degens AND builders should know about. Focus on: AI agents and agentic commerce (autonomous agents that hold wallets, execute trades, pay for services, hire other agents, interact on-chain without humans — Virtuals protocol, ai16z, ElizaOS, new agent frameworks), agentic infrastructure (payment rails for agents, agent-to-agent communication, on-chain identity for agents, agent launchpads), new computing paradigms (decentralised AI compute, model ownership on-chain, projects bridging AI and crypto infrastructure), emerging on-chain behaviour (new use cases that did not exist 12 months ago, new transaction types created by AI or automation), and any wild new tech narrative getting serious CT attention from builders and investors. For each narrative be SPECIFIC — name actual projects, actual teams or founders, specific technical milestones or launches driving it. No vague takes. Return ONLY a valid JSON array, no markdown, no extra text. Exactly 6 objects with these exact fields: name, summary, hype_score, fundamentals_score, cycle_stage, talk_score, verdict, why_trending, comparable, next_move. cycle_stage must be one of: early, mid-cycle, peak hype, late / cooling. All values must be strings or integers. Sort by talk_score descending.` }]
+      model: HAIKU, max_tokens: 2000,
+      messages: [{ role: 'user', content: `Today is ${today}. You are a crypto researcher who tracks emerging technology narratives in the blockchain space. You follow CT closely but you care about SIGNAL not noise. Identify the most important emerging tech narratives in crypto right now that degens AND builders should know about. Focus on: AI agents and agentic commerce (autonomous agents that hold wallets, execute trades, pay for services, hire other agents, interact on-chain without humans — Virtuals protocol, ai16z, ElizaOS, new agent frameworks), agentic infrastructure (payment rails for agents, agent-to-agent communication, on-chain identity for agents, agent launchpads), new computing paradigms (decentralised AI compute, model ownership on-chain, projects bridging AI and crypto infrastructure), emerging on-chain behaviour (new use cases that did not exist 12 months ago, new transaction types created by AI or automation), and any wild new tech narrative getting serious CT attention from builders and investors. Be SPECIFIC — name actual projects, actual teams, specific milestones. Return ONLY a valid JSON array, no markdown, no extra text. Exactly 6 objects with fields: name, summary, hype_score, fundamentals_score, cycle_stage, talk_score, verdict, why_trending, comparable, next_move. cycle_stage must be one of: early, mid-cycle, peak hype, late / cooling. All values must be strings or integers. Sort by talk_score descending.` }]
     });
 
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
@@ -87,61 +97,6 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
     const payload = { narratives, timestamp: Date.now() };
     await cacheSet(CACHE_KEY, payload, 4 * 60 * 60);
     res.json({ narratives, cached: false, cachedAt: payload.timestamp, nextRefresh: payload.timestamp + CACHE_TTL_MS });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/analyse', rateLimit, async (req, res) => {
-  try {
-    const { tokenData, candles1h, candles4h, levels1h, levels4h } = req.body;
-    if (!tokenData || !candles1h || !candles4h || !levels1h || !levels4h) return res.status(400).json({ error: 'missing required fields' });
-    if (!Array.isArray(candles1h) || !Array.isArray(candles4h)) return res.status(400).json({ error: 'candles must be arrays' });
-    if (candles1h.length > 100 || candles4h.length > 100) return res.status(400).json({ error: 'too many candles' });
-
-    const summarise = (candles) => candles.slice(-20).map(c => ({
-      t: new Date(c.timestamp * 1000).toISOString().slice(11, 16),
-      o: +Number(c.open).toFixed(6),
-      h: +Number(c.high).toFixed(6),
-      l: +Number(c.low).toFixed(6),
-      c: +Number(c.close).toFixed(6)
-    }));
-
-    const fmtLevels = (lvls) => ({
-      support: lvls.support.map((s, i) => `S${i + 1}: ${s}`).join(', ') || 'none',
-      resistance: lvls.resistance.map((r, i) => `R${i + 1}: ${r}`).join(', ') || 'none'
-    });
-
-    const l1h = fmtLevels(levels1h);
-    const l4h = fmtLevels(levels4h);
-
-    const prompt = `You are a crypto TA analyst. Return ONLY valid JSON, no markdown, no newlines inside string values, no special characters inside strings. Use only ASCII characters in your response.
-
-TOKEN: ${tokenData.name} ($${tokenData.symbol}) on ${tokenData.chain}
-PRICE: ${tokenData.price} | 24H: ${tokenData.change24h}% | LIQ: ${tokenData.liquidity} | AGE: ${tokenData.age}
-1H SUPPORT: ${l1h.support} | 1H RESISTANCE: ${l1h.resistance}
-4H SUPPORT: ${l4h.support} | 4H RESISTANCE: ${l4h.resistance}
-1H CLOSES: ${summarise(candles1h).map(c => c.c).join(', ')}
-4H CLOSES: ${summarise(candles4h).map(c => c.c).join(', ')}
-1H HIGHS: ${summarise(candles1h).map(c => c.h).join(', ')}
-1H LOWS: ${summarise(candles1h).map(c => c.l).join(', ')}
-4H HIGHS: ${summarise(candles4h).map(c => c.h).join(', ')}
-4H LOWS: ${summarise(candles4h).map(c => c.l).join(', ')}
-
-Return ONLY this JSON object with detailed single-line string values and no newlines anywhere:
-{"formation":"specific chart pattern name","bias":"bullish or bearish or neutral","pattern_description":"what 4H macro structure shows and what 1H is doing right now and what this means for a degen","momentum":"is buying or selling pressure dominant and what do candle shapes reveal","key_levels":"every support and resistance level from both timeframes with exact prices and why each matters","volume_story":"what volume trend tells us about accumulation or distribution","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H or 4H","reasoning":"specific level and why"},{"label":"safe entry","price":0,"timeframe":"1H or 4H","reasoning":"specific level and why"},{"label":"aggressive entry","price":0,"timeframe":"1H or 4H","reasoning":"why valid or skip if not"}],"invalidation":"exact price that kills thesis and what it means","verdict":"honest take on setup quality and risk reward"}`;
-
-    const data = await callClaude({ model: HAIKU, max_tokens: 900, messages: [{ role: 'user', content: prompt }] });
-    const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    const cleaned = txt.replace(/```json/g, '').replace(/```/g, '').replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').trim();
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('No analysis in Claude response');
-    let analysis;
-    try {
-      analysis = JSON.parse(match[0]);
-    } catch (e2) {
-      const safe = match[0].replace(/("(?:[^"\\]|\\.)*")|'([^'\\]|\\.)*'/g, m => m.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t'));
-      analysis = JSON.parse(safe);
-    }
-    res.json({ analysis });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
