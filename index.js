@@ -64,7 +64,7 @@ async function callClaude(body) {
 
 app.post('/api/narratives', rateLimit, async (req, res) => {
   try {
-    const CACHE_KEY = 'ct_narratives_v2';
+    const CACHE_KEY = 'ct_narratives_v3';
     const cached = await cacheGet(CACHE_KEY);
     if (cached && cached.narratives && cached.timestamp) {
       const age = Date.now() - cached.timestamp;
@@ -75,45 +75,15 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
 
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const data = await callClaude({
-      model: SONNET, max_tokens: 2000,
-      messages: [{ role: 'user', content: `Today is ${today}. You are a degenerate crypto trader who spends 16 hours a day on Crypto Twitter, pump.fun, and dexscreener. You know every memecoin meta, every AI agent narrative, every CT influencer call. Your job is to give the REAL picture of what degens are actually aping into right now.
-
-Focus ONLY on:
-- Memecoins: what animal meta is running (dogs, cats, frogs, penguins etc), what pump.fun tokens are going viral, what CT influencers are shilling, what's getting 10x-100x talk right now
-- AI agent tokens specifically: Virtuals protocol agents, ai16z ecosystem, autonomous AI agents that hold wallets and trade, any new AI agent launchpad getting attention
-- Degen narratives: anything wild, controversial, or drama-driven that's moving money right now
-- New L1/L2 ecosystems if memecoins are exploding on them specifically
-
-Do NOT include: boring DeFi, RWA, institutional stuff, or anything a suit would care about. This is pure degen territory.
-
-For each narrative be SPECIFIC — name actual tokens, name actual CT accounts talking about it, name specific price moves or events driving it. No vague generic takes.
-
-Return ONLY a valid JSON array, no markdown, no extra text. Exactly 6 objects:
-{
-  "name": "short punchy name (2-4 words)",
-  "summary": "one sharp degen sentence — what it is, what's happening RIGHT NOW, and why CT can't stop talking about it",
-  "hype_score": integer 1-10,
-  "fundamentals_score": integer 1-10,
-  "cycle_stage": "early" or "mid-cycle" or "peak hype" or "late / cooling",
-  "talk_score": integer 1-10,
-  "verdict": "one line real degen take — are we early, is this a rug waiting to happen, is this the next 100x meta or is it cooked",
-  "why_trending": "2 specific sentences — name the exact catalyst, the CT accounts, the price move or event that started this",
-  "comparable": "what past memecoin or crypto narrative does this remind you of, what happened to that one",
-  "next_move": "honest degen prediction — pump continues, rotation incoming, or rug incoming and why"
-}
-Sort by talk_score descending. Be brutally specific, not generic.` }]
+      model: SONNET, max_tokens: 2500,
+      messages: [{ role: 'user', content: `Today is ${today}. You are a degenerate crypto trader who lives on CT, pump.fun, and dexscreener. Give the REAL picture of what degens are aping into right now. Focus ONLY on memecoins (animal metas, pump.fun viral tokens, CT influencer calls), AI agent tokens (Virtuals protocol, ai16z, autonomous agents with wallets), and wild degen narratives. No DeFi, no RWA, no boring stuff. Be specific — name actual tokens and CT accounts. Return ONLY a valid JSON array, no markdown, no extra text. Exactly 6 objects with these exact fields: name, summary, hype_score, fundamentals_score, cycle_stage, talk_score, verdict, why_trending, comparable, next_move. cycle_stage must be one of: early, mid-cycle, peak hype, late / cooling. All values must be strings or integers. Sort by talk_score descending.` }]
     });
 
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
     const cleaned = txt.replace(/```json/g, '').replace(/```/g, '').trim();
     const match = cleaned.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error('No JSON in Claude response');
-    let narratives;
-    try {
-      narratives = JSON.parse(match[0]);
-  } catch (e2) {
-  throw new Error('Claude returned malformed JSON: ' + e2.message);
-}
+    if (!match) throw new Error('No JSON in Claude response — Claude said: ' + cleaned.slice(0, 200));
+    const narratives = JSON.parse(match[0]);
     const payload = { narratives, timestamp: Date.now() };
     await cacheSet(CACHE_KEY, payload, 4 * 60 * 60);
     res.json({ narratives, cached: false, cachedAt: payload.timestamp, nextRefresh: payload.timestamp + CACHE_TTL_MS });
@@ -143,18 +113,21 @@ app.post('/api/analyse', rateLimit, async (req, res) => {
     const l1h = fmtLevels(levels1h);
     const l4h = fmtLevels(levels4h);
 
-    const prompt = `You are a crypto TA analyst. Analyse this token and return ONLY a JSON object, no markdown, no newlines inside string values.
+    const prompt = `You are a crypto TA analyst. Return ONLY valid JSON, no markdown, no newlines inside string values, no special characters inside strings. Use only ASCII characters in your response.
 
 TOKEN: ${tokenData.name} ($${tokenData.symbol}) on ${tokenData.chain}
-PRICE: ${tokenData.price} | 24H CHANGE: ${tokenData.change24h}%
-LIQUIDITY: ${tokenData.liquidity} | AGE: ${tokenData.age}
+PRICE: ${tokenData.price} | 24H: ${tokenData.change24h}% | LIQ: ${tokenData.liquidity} | AGE: ${tokenData.age}
 1H SUPPORT: ${l1h.support} | 1H RESISTANCE: ${l1h.resistance}
 4H SUPPORT: ${l4h.support} | 4H RESISTANCE: ${l4h.resistance}
-RECENT 1H CLOSES: ${summarise(candles1h).map(c => c.c).join(', ')}
-RECENT 4H CLOSES: ${summarise(candles4h).map(c => c.c).join(', ')}
+1H CLOSES: ${summarise(candles1h).map(c => c.c).join(', ')}
+4H CLOSES: ${summarise(candles4h).map(c => c.c).join(', ')}
+1H HIGHS: ${summarise(candles1h).map(c => c.h).join(', ')}
+1H LOWS: ${summarise(candles1h).map(c => c.l).join(', ')}
+4H HIGHS: ${summarise(candles4h).map(c => c.h).join(', ')}
+4H LOWS: ${summarise(candles4h).map(c => c.l).join(', ')}
 
-Return this exact JSON with short single-line string values only:
-{"formation":"specific chart pattern name","bias":"bullish or bearish or neutral","pattern_description":"describe what 4H macro structure shows then what 1H is doing right now then what this means for a degen trader","momentum":"describe if buying or selling pressure is dominant and what candle shapes reveal about conviction","key_levels":"list every support and resistance level from both timeframes with exact prices and why each level matters","volume_story":"describe what volume trend tells us about accumulation or distribution or low conviction","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H or 4H","reasoning":"specific support level this aligns with and why"},{"label":"safe entry","price":0,"timeframe":"1H or 4H","reasoning":"specific level this aligns with and why"},{"label":"aggressive entry","price":0,"timeframe":"1H or 4H","reasoning":"reason to buy at or near current price if valid"}],"invalidation":"exact price level that kills the thesis and what it means if broken","verdict":"honest direct take on whether this is a good setup right now and the risk reward"}`;
+Return ONLY this JSON object with detailed single-line string values and no newlines anywhere:
+{"formation":"specific chart pattern name","bias":"bullish or bearish or neutral","pattern_description":"what 4H macro structure shows and what 1H is doing right now and what this means for a degen","momentum":"is buying or selling pressure dominant and what do candle shapes reveal","key_levels":"every support and resistance level from both timeframes with exact prices and why each matters","volume_story":"what volume trend tells us about accumulation or distribution","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H or 4H","reasoning":"specific level and why"},{"label":"safe entry","price":0,"timeframe":"1H or 4H","reasoning":"specific level and why"},{"label":"aggressive entry","price":0,"timeframe":"1H or 4H","reasoning":"why valid or skip if not"}],"invalidation":"exact price that kills thesis and what it means","verdict":"honest take on setup quality and risk reward"}`;
 
     const data = await callClaude({ model: HAIKU, max_tokens: 900, messages: [{ role: 'user', content: prompt }] });
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
