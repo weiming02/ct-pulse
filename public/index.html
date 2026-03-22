@@ -136,6 +136,15 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .ls-e{background:rgba(255,170,0,0.7)}
 .ls-c{background:rgba(240,237,230,0.45)}
 
+.chart-desc{display:none;border-top:1px solid var(--border);padding:12px 14px;background:var(--bg3)}
+.chart-desc.on{display:block}
+.chart-desc-formation{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.06em;margin-bottom:6px}
+.chart-desc-bull{color:var(--green)}
+.chart-desc-bear{color:var(--red)}
+.chart-desc-neutral{color:var(--amber)}
+.chart-desc-body{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:8px}
+.chart-desc-entry{font-family:var(--mono);font-size:11px;color:var(--amber);border-left:2px solid var(--amber);padding-left:8px;line-height:1.5}
+
 .analysis-card{display:none;background:var(--bg2);border:1px solid var(--border-strong);border-top:none;padding:22px}
 .analysis-card.on{display:block}
 .analysis-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
@@ -265,6 +274,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
         <span class="chart-badge">macro structure from 4H used by AI</span>
       </div>
       <div class="chart-canvas-wrap"><canvas id="chart-canvas-1h"></canvas></div>
+      <div class="chart-desc" id="chart-desc-1h">
+        <div class="chart-desc-formation" id="chart-desc-formation-1h"></div>
+        <div class="chart-desc-body" id="chart-desc-body-1h"></div>
+        <div class="chart-desc-entry" id="chart-desc-entry-1h"></div>
+      </div>
       <div class="chart-legend">
         <div class="legend-item"><div class="legend-swatch ls-s"></div>support</div>
         <div class="legend-item"><div class="legend-swatch ls-r"></div>resistance</div>
@@ -278,6 +292,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
         <span class="chart-badge">higher timeframe context</span>
       </div>
       <div class="chart-canvas-wrap"><canvas id="chart-canvas-4h"></canvas></div>
+      <div class="chart-desc" id="chart-desc-4h">
+        <div class="chart-desc-formation" id="chart-desc-formation-4h"></div>
+        <div class="chart-desc-body" id="chart-desc-body-4h"></div>
+        <div class="chart-desc-entry" id="chart-desc-entry-4h"></div>
+      </div>
       <div class="chart-legend">
         <div class="legend-item"><div class="legend-swatch ls-s"></div>support</div>
         <div class="legend-item"><div class="legend-swatch ls-r"></div>resistance</div>
@@ -659,6 +678,27 @@ function renderAnalysis(a) {
     ezList.appendChild(d);
   });
   document.getElementById('analysis-card').classList.add('on');
+
+  // populate chart description strips
+  const biasClass = a.bias === 'bullish' ? 'chart-desc-bull' : a.bias === 'bearish' ? 'chart-desc-bear' : 'chart-desc-neutral';
+  const biasLabel = (a.bias || 'neutral').toUpperCase();
+  const formationText = biasLabel + ' — ' + (a.formation || '');
+  const firstEZ = (a.entry_zones || [])[0];
+  const entryText = firstEZ
+    ? 'ideal entry: ' + fmtP(firstEZ.price) + ' · ' + (firstEZ.reasoning || '')
+    : 'no clear entry zone identified';
+
+  ['1h', '4h'].forEach(tf => {
+    const desc = document.getElementById('chart-desc-' + tf);
+    const form = document.getElementById('chart-desc-formation-' + tf);
+    const body = document.getElementById('chart-desc-body-' + tf);
+    const entry = document.getElementById('chart-desc-entry-' + tf);
+    form.textContent = formationText;
+    form.className = 'chart-desc-formation ' + biasClass;
+    body.textContent = tf === '1h' ? (a.pattern_description || '') : (a.key_levels || '');
+    entry.textContent = entryText;
+    desc.classList.add('on');
+  });
 }
 </script>
 </body>
