@@ -573,14 +573,15 @@ async function analyseCA(){
     document.getElementById('ca-msg').textContent=MSGS_CA[3];
 
     const tokenData={
-      name:pair.baseToken?.name||'unknown',
-      symbol:pair.baseToken?.symbol||'',
-      chain:pair.chainId||'',
-      price:fmtP(pair.priceUsd),
-      change24h:chg.toFixed(2),
-      liquidity:fmt(pair.liquidity?.usd),
-      age:pair.pairCreatedAt?timeAgo(pair.pairCreatedAt/1000):'unknown'
-    };
+  name:pair.baseToken?.name||'unknown',
+  symbol:pair.baseToken?.symbol||'',
+  chain:pair.chainId||'',
+  price:fmtP(pair.priceUsd),
+  marketCap:pair.marketCap?fmt(pair.marketCap):'unknown',
+  change24h:chg.toFixed(2),
+  liquidity:fmt(pair.liquidity?.usd),
+  age:pair.pairCreatedAt?timeAgo(pair.pairCreatedAt/1000):'unknown'
+};
 
     const fmtLvls=(lvl)=>({
       support:lvl.support.map(s=>fmtP(s)),
@@ -593,7 +594,7 @@ async function analyseCA(){
 
     const apiKey=await getApiKey();
     const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. '
-      +'TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+tokenData.price+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' '
+      +'TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+tokenData.price+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' '
       +'1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+' '
       +'4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+' '
       +'1H_CLOSES: '+c1h.join(',')+' 4H_CLOSES: '+c4h.join(',')+' '
