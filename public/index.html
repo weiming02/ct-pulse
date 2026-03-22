@@ -491,20 +491,13 @@ function drawChart(canvasId,cands,lvls){
         const{ctx:c,chartArea:ca,scales:{y}}=ch;
         if(!ca)return;
         const W=ca.right-ca.left;
-        support.forEach((s,i)=>{
-          const py=y.getPixelForValue(s);
-          c.save();c.setLineDash([4,3]);c.strokeStyle='rgba(57,255,106,0.55)';c.lineWidth=1.5;
-          c.beginPath();c.moveTo(ca.left,py);c.lineTo(ca.right,py);c.stroke();
-          c.setLineDash([]);c.fillStyle='rgba(57,255,106,0.85)';c.font='9px JetBrains Mono';c.textAlign='left';
-          c.fillText('S'+(i+1)+' '+fmtP(s),ca.left+4,py-4);c.restore();
-        });
-        resistance.forEach((r,i)=>{
-          const py=y.getPixelForValue(r);
-          c.save();c.setLineDash([4,3]);c.strokeStyle='rgba(255,68,68,0.55)';c.lineWidth=1.5;
-          c.beginPath();c.moveTo(ca.left,py);c.lineTo(ca.right,py);c.stroke();
-          c.setLineDash([]);c.fillStyle='rgba(255,68,68,0.85)';c.font='9px JetBrains Mono';c.textAlign='left';
-          c.fillText('R'+(i+1)+' '+fmtP(r),ca.left+4,py-4);c.restore();
-        });
+        if(support.length>0){
+  const py=y.getPixelForValue(support[0]);
+  c.save();c.setLineDash([4,3]);c.strokeStyle='rgba(57,255,106,0.55)';c.lineWidth=1.5;
+  c.beginPath();c.moveTo(ca.left,py);c.lineTo(ca.right,py);c.stroke();
+  c.setLineDash([]);c.fillStyle='rgba(57,255,106,0.85)';c.font='9px JetBrains Mono';c.textAlign='left';
+  c.fillText('S1 '+fmtP(support[0]),ca.left+4,py-4);c.restore();
+}
         if(support.length>0){
           const ez=support[0];
           const yT=y.getPixelForValue(ez*1.018),yB=y.getPixelForValue(ez*0.982);
