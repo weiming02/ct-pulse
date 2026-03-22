@@ -589,12 +589,12 @@ async function analyseCA(){
     });
     const s1h=fmtLvls(levels['1h']);
     const s4h=fmtLvls(levels['4h']);
-    const c1h=candles['1h'].slice(-15).map(c=>+Number(c.close).toFixed(6));
-    const c4h=candles['4h'].slice(-15).map(c=>+Number(c.close).toFixed(6));
+    const c1h=candles['1h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
+    const c4h=candles['4h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
 
     const apiKey=await getApiKey();
     const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. Entry zones must always be BELOW current price for bearish bias, ABOVE current price for bullish bias. Current price is '+tokenData.price+'. '
-      +'TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+tokenData.price+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' '
+      +'TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+parseFloat(pair.priceUsd).toFixed(10)+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' '
       +'1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+' '
       +'4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+' '
       +'1H_CLOSES: '+c1h.join(',')+' 4H_CLOSES: '+c4h.join(',')+' '
