@@ -520,11 +520,32 @@ function synthesizeCandles(pair, count, intervalHours) {
 async function fetchCandles(pair, tf) {
   const tfMap = { '1h': { q: '1h', limit: 50, hours: 1 }, '4h': { q: '4h', limit: 50, hours: 4 } };
   const { q, limit, hours } = tfMap[tf];
+  
+  // try pair address first (most accurate)
   try {
     const r = await fetch(`https://api.dexscreener.com/latest/dex/candles/${pair.chainId}/${pair.pairAddress}?type=${q}&limit=${limit}`);
     const d = await r.json();
-    if (d?.candles?.length > 0) return d.candles.slice(-50);
+    if (d?.candles?.length >= 10) {
+      console.log(`[${tf}] real candles loaded: ${d.candles.length}`);
+      return d.candles.slice(-50);
+    }
   } catch (e) {}
+
+  // try GeckoTerminal as backup (better coverage)
+  try {
+    const network = pair.chainId === 'solana' ? 'solana' : pair.chainId === 'bsc' ? 'bsc' : pair.chainId === 'base' ? 'base' : 'eth';
+    const res = await fetch(`https://api.geckoterminal.com/api/v2/networks/${network}/pools/${pair.pairAddress}/ohlcv/${tf === '1h' ? 'hour' : tf === '4h' ? 'hour' : 'day'}?aggregate=${tf === '4h' ? 4 : 1}&limit=50`);
+    const d = await res.json();
+    const raw = d?.data?.attributes?.ohlcv_list;
+    if (raw?.length >= 10) {
+      console.log(`[${tf}] GeckoTerminal candles loaded: ${raw.length}`);
+      return raw.map(c => ({ timestamp: c[0], open: c[1], high: c[2], low: c[3], close: c[4], volume: c[5] })).reverse();
+    }
+  } catch (e) {}
+
+  // last resort — synthesize and warn user
+  console.warn(`[${tf}] no real candles found — using synthesized data`);
+  document.getElementById('chart-desc-body-' + tf.replace('h','') + 'h').textContent = '⚠ live candle data unavailable for this token/chain — chart is estimated from 24h price data only. AI analysis may be less accurate.';
   return synthesizeCandles(pair, limit, hours);
 }
 
