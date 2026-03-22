@@ -131,7 +131,17 @@ app.post('/api/analyse', rateLimit, async (req, res) => {
     const l1h = fmtLevels(levels1h);
     const l4h = fmtLevels(levels4h);
 
-    const prompt = `You are a professional crypto technical analyst. Return ONLY valid JSON. TOKEN: ${tokenData.name} ($${tokenData.symbol}) CHAIN: ${tokenData.chain} PRICE: ${tokenData.price} 24H: ${tokenData.change24h}% LIQ: ${tokenData.liquidity} VOL: ${tokenData.volume24h} MCAP: ${tokenData.marketCap} AGE: ${tokenData.age} 1H SUPPORT: ${l1h.support} 1H RESISTANCE: ${l1h.resistance} 4H SUPPORT: ${l4h.support} 4H RESISTANCE: ${l4h.resistance} 1H CANDLES: ${JSON.stringify(summarise(candles1h))} 4H CANDLES: ${JSON.stringify(summarise(candles4h))} Return ONLY: { "formation": "pattern name", "bias": "bullish|bearish|neutral", "pattern_description": "3 sentences on 4H macro + 1H entry timing", "momentum": "2 sentences on buying vs selling pressure", "key_levels": "walk through each level with prices", "volume_story": "2 sentences on volume trend", "entry_zones": [{"label": "ideal entry", "price": number, "timeframe": "1H or 4H", "reasoning": "specific reason"}, {"label": "safe entry", "price": number, "timeframe": "1H or 4H", "reasoning": "specific reason"}, {"label": "aggressive entry", "price": number, "timeframe": "1H or 4H", "reasoning": "only if relevant"}], "invalidation": "exact price + what breaking it means", "verdict": "2 sentences honest take like a smart CT friend" }`;
+    const prompt = `Crypto TA analyst. Return ONLY valid JSON, no markdown.
+
+TOKEN: ${tokenData.name} ($${tokenData.symbol}) | ${tokenData.chain}
+PRICE: ${tokenData.price} | 24H: ${tokenData.change24h}% | LIQ: ${tokenData.liquidity} | AGE: ${tokenData.age}
+1H: support ${l1h.support} | resistance ${l1h.resistance}
+4H: support ${l4h.support} | resistance ${l4h.resistance}
+1H CANDLES (last 30): ${JSON.stringify(summarise(candles1h))}
+4H CANDLES (last 30): ${JSON.stringify(summarise(candles4h))}
+
+JSON response:
+{"formation":"pattern name","bias":"bullish|bearish|neutral","pattern_description":"3 sentences: 4H structure + 1H timing + what it means","momentum":"2 sentences on buying vs selling pressure","key_levels":"support and resistance levels with prices","volume_story":"2 sentences on volume","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why"}],"invalidation":"price + what it means","verdict":"2 sentence honest take"}`;
 
     const data = await callClaude({ model: MODEL, max_tokens: 1500, messages: [{ role: 'user', content: prompt }] });
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
