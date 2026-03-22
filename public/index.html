@@ -19,6 +19,22 @@
   --border:rgba(240,237,230,0.08);--border-strong:rgba(240,237,230,0.15);
   --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
 }
+body.light{
+  --bg:#f5f3ee;--bg2:#eceae3;--bg3:#e2e0d8;
+  --ink:#1a1a18;--ink2:#5a5a52;--ink3:#9a9a8e;
+  --accent:#1a8a3a;--accent2:#157030;
+  --red:#cc2222;--red-bg:rgba(204,34,34,0.08);
+  --green:#1a8a3a;--green-bg:rgba(26,138,58,0.1);
+  --amber:#8a6000;--amber-bg:rgba(138,96,0,0.1);
+  --border:rgba(26,26,24,0.1);--border-strong:rgba(26,26,24,0.2);
+}
+.theme-btn{background:transparent;border:1px solid var(--border-strong);cursor:pointer;padding:6px 8px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;color:var(--ink3);border-radius:0}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+.theme-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:all 0.2s}
+.bulb-on{display:none}
+.bulb-off{display:block}
+body.light .bulb-on{display:block}
+body.light .bulb-off{display:none}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;line-height:1.5}
 .wrap{max-width:900px;margin:0 auto;padding:0 20px}
 
@@ -91,8 +107,6 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .dblock-lbl{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:5px}
 .dblock-txt{font-size:13px;color:var(--ink2);line-height:1.6}
-.verdict-bar{background:var(--bg);border:1px solid var(--accent);padding:10px 14px;font-size:13px;color:var(--ink2);line-height:1.5;margin-top:14px}
-.verdict-bar strong{color:var(--accent)}
 
 .ca-input-row{display:flex;margin-bottom:8px;border:1px solid var(--border-strong);background:var(--bg2)}
 .ca-input-row:focus-within{border-color:var(--accent)}
@@ -202,6 +216,10 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
         <h1>CT Pulse</h1>
         <p>memecoin radar — no scroll required</p>
       </div>
+      <button class="theme-btn" onclick="toggleTheme()" title="toggle light/dark mode">
+        <svg class="bulb-off" viewBox="0 0 24 24"><path d="M9 21h6M12 3a6 6 0 0 1 6 6c0 2.22-1.2 4.16-3 5.2V17H9v-2.8C7.2 13.16 6 11.22 6 9a6 6 0 0 1 6-6z"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <svg class="bulb-on" viewBox="0 0 24 24"><path d="M9 21h6M12 3a6 6 0 0 1 6 6c0 2.22-1.2 4.16-3 5.2V17H9v-2.8C7.2 13.16 6 11.22 6 9a6 6 0 0 1 6-6z" fill="currentColor" stroke="currentColor"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="1" y1="12" x2="3" y2="12"/></svg>
+      </button>
     </div>
     <div class="live-dot"><div class="dot"></div><span id="last-updated">not loaded</span></div>
   </div>
@@ -212,7 +230,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
   <button class="tab" id="tab-ca" onclick="switchTab('ca')">chart analysis</button>
 </div>
 
-<!-- NARRATIVES TAB -->
 <div id="pane-n">
   <button class="big-btn" id="narrative-btn" onclick="loadNarratives()">
     <div class="btn-pulse" id="btn-pulse"></div>
@@ -228,11 +245,10 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
   </div>
   <div class="empty" id="n-empty">
     <p>hit the button to scan today's memecoin narratives.</p>
-    
+    <p>powered by claude + upstash cache.</p>
   </div>
 </div>
 
-<!-- CA TAB -->
 <div id="pane-ca" style="display:none">
   <div class="sl">paste contract address</div>
   <div class="ca-input-row">
@@ -350,13 +366,20 @@ let candles = { '1h': [], '4h': [] };
 let levels = { '1h': { support: [], resistance: [] }, '4h': { support: [], resistance: [] } };
 let currentPair = null;
 
-// SECURITY: sanitise any external text before injecting into innerHTML
 function safe(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-const MSGS_N = ['scanning CT for what\'s wild today...', 'finding the hottest metas...', 'separating signal from CT noise...', 'checking what degens are aping...'];
-const MSGS_CA = ['fetching token data from DEXScreener...', 'pulling 1H candles — 50 bars...', 'pulling 4H candles — 50 bars...', 'sending to AI analyst...', 'identifying formations + entry zones...'];
+function toggleTheme() {
+  document.body.classList.toggle('light');
+  localStorage.setItem('ctpulse_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+}
+
+const savedTheme = localStorage.getItem('ctpulse_theme');
+if (savedTheme === 'light') document.body.classList.add('light');
+
+const MSGS_N = ['scanning CT for what\'s wild today...','finding the hottest metas...','separating signal from CT noise...','checking what degens are aping...'];
+const MSGS_CA = ['fetching token data from DEXScreener...','pulling 1H candles — 50 bars...','pulling 4H candles — 50 bars...','sending to AI analyst...','identifying formations + entry zones...'];
 
 function fmt(n) {
   if (!n && n !== 0) return '—';
@@ -405,16 +428,17 @@ async function loadNarratives() {
   document.getElementById('n-msg').textContent = MSGS_N[Math.floor(Math.random() * MSGS_N.length)];
   document.getElementById('n-results').style.display = 'none';
   document.getElementById('n-empty').style.display = 'none';
-
   try {
     const res = await fetch('/api/narratives', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     renderNarratives(data.narratives);
-    document.getElementById('last-updated').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const cachedAt = data.cachedAt ? new Date(data.cachedAt) : new Date();
+    const timeStr = cachedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('last-updated').textContent = (data.cached ? 'cached ' : 'live ') + timeStr;
   } catch (e) {
     document.getElementById('n-empty').style.display = 'block';
-    document.getElementById('n-empty').innerHTML = `<p class="err">error: ${e.message}</p>`;
+    document.getElementById('n-empty').innerHTML = `<p class="err">error: ${safe(e.message)}</p>`;
   }
   document.getElementById('n-loading').classList.remove('on');
   btn.disabled = false;
@@ -514,13 +538,9 @@ function drawChart(canvasId, cands, lvls) {
     return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':00';
   });
   const isUp = closes[closes.length - 1] >= closes[0];
-
   const chart = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{ data: closes, borderColor: isUp ? '#39ff6a' : '#ff4444', borderWidth: 1.5, fill: true, backgroundColor: isUp ? 'rgba(57,255,106,0.04)' : 'rgba(255,68,68,0.04)', pointRadius: 0, tension: 0.3 }]
-    },
+    data: { labels, datasets: [{ data: closes, borderColor: isUp ? '#39ff6a' : '#ff4444', borderWidth: 1.5, fill: true, backgroundColor: isUp ? 'rgba(57,255,106,0.04)' : 'rgba(255,68,68,0.04)', pointRadius: 0, tension: 0.3 }] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: { duration: 500 },
       interaction: { mode: 'index', intersect: false },
@@ -585,14 +605,12 @@ async function analyseCA() {
   document.getElementById('ca-empty').style.display = 'none';
   Object.values(charts).forEach(c => { if (c) c.destroy(); });
   charts = { '1h': null, '4h': null };
-
   try {
     const dsr = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${ca}`);
     const dsd = await dsr.json();
     if (!dsd.pairs || dsd.pairs.length === 0) throw new Error('token not found — check the contract address');
     const pair = dsd.pairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
     currentPair = pair;
-
     const chg = parseFloat(pair.priceChange?.h24 || 0);
     document.getElementById('t-name').textContent = pair.baseToken?.name || 'unknown';
     document.getElementById('t-ticker').textContent = '$' + (pair.baseToken?.symbol || '');
@@ -606,47 +624,31 @@ async function analyseCA() {
     document.getElementById('t-mcap').textContent = pair.marketCap ? fmt(pair.marketCap) : '—';
     document.getElementById('t-age').textContent = pair.pairCreatedAt ? timeAgo(pair.pairCreatedAt / 1000) : '—';
     document.getElementById('token-strip').classList.add('on');
-
     document.getElementById('ca-msg').textContent = MSGS_CA[1];
     candles['1h'] = await fetchCandles(pair, '1h');
     document.getElementById('ca-msg').textContent = MSGS_CA[2];
     candles['4h'] = await fetchCandles(pair, '4h');
-
     levels['1h'] = calcLevels(candles['1h']);
     levels['4h'] = calcLevels(candles['4h']);
-
     drawChart('chart-canvas-1h', candles['1h'], levels['1h']);
     drawChart('chart-canvas-4h', candles['4h'], levels['4h']);
     document.getElementById('chart-section').classList.add('on');
-
     document.getElementById('ca-msg').textContent = MSGS_CA[3];
-
     const tokenData = {
-      name: pair.baseToken?.name || 'unknown',
-      symbol: pair.baseToken?.symbol || '',
-      chain: pair.chainId || '',
-      price: fmtP(pair.priceUsd),
-      change24h: chg.toFixed(2),
-      liquidity: fmt(pair.liquidity?.usd),
-      volume24h: fmt(pair.volume?.h24),
+      name: pair.baseToken?.name || 'unknown', symbol: pair.baseToken?.symbol || '',
+      chain: pair.chainId || '', price: fmtP(pair.priceUsd), change24h: chg.toFixed(2),
+      liquidity: fmt(pair.liquidity?.usd), volume24h: fmt(pair.volume?.h24),
       marketCap: pair.marketCap ? fmt(pair.marketCap) : 'unknown',
       age: pair.pairCreatedAt ? timeAgo(pair.pairCreatedAt / 1000) : 'unknown'
     };
-
-    const fmtLvls = (lvl) => ({
-      support: lvl.support.map(s => fmtP(s)),
-      resistance: lvl.resistance.map(r => fmtP(r))
-    });
-
+    const fmtLvls = (lvl) => ({ support: lvl.support.map(s => fmtP(s)), resistance: lvl.resistance.map(r => fmtP(r)) });
     const res = await fetch('/api/analyse', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tokenData, candles1h: candles['1h'], candles4h: candles['4h'], levels1h: fmtLvls(levels['1h']), levels4h: fmtLvls(levels['4h']) })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     renderAnalysis(data.analysis);
-
   } catch (e) {
     document.getElementById('ca-empty').style.display = 'block';
     document.getElementById('ca-empty').innerHTML = `<p class="err">error: ${safe(e.message)}</p>`;
@@ -678,16 +680,10 @@ function renderAnalysis(a) {
     ezList.appendChild(d);
   });
   document.getElementById('analysis-card').classList.add('on');
-
-  // populate chart description strips
   const biasClass = a.bias === 'bullish' ? 'chart-desc-bull' : a.bias === 'bearish' ? 'chart-desc-bear' : 'chart-desc-neutral';
-  const biasLabel = (a.bias || 'neutral').toUpperCase();
-  const formationText = biasLabel + ' — ' + (a.formation || '');
+  const formationText = (a.bias || 'neutral').toUpperCase() + ' — ' + (a.formation || '');
   const firstEZ = (a.entry_zones || [])[0];
-  const entryText = firstEZ
-    ? 'ideal entry: ' + fmtP(firstEZ.price) + ' · ' + (firstEZ.reasoning || '')
-    : 'no clear entry zone identified';
-
+  const entryText = firstEZ ? 'ideal entry: ' + fmtP(firstEZ.price) + ' · ' + (firstEZ.reasoning || '') : 'no clear entry zone identified';
   ['1h', '4h'].forEach(tf => {
     const desc = document.getElementById('chart-desc-' + tf);
     const form = document.getElementById('chart-desc-formation-' + tf);
