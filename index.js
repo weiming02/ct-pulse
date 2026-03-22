@@ -58,7 +58,11 @@ async function callClaude(body) {
   return res.json();
 }
 
-app.get('/api/key', (req, res) => {
+app.get('/api/key', rateLimit, (req, res) => {
+  const origin = req.headers.referer || req.headers.origin || '';
+  if (!origin.includes('ct-pulse.vercel.app') && !origin.includes('localhost')) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
   res.json({ key: ANTHROPIC_API_KEY });
 });
 
