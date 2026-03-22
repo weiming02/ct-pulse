@@ -75,7 +75,7 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const data = await callClaude({
       model: 'claude-haiku-4-5-20251001', max_tokens: 600,
-      messages: [{ role: 'user', content: content: `Today is ${today}. You are a degenerate crypto trader who spends 16 hours a day on Crypto Twitter, pump.fun, and dexscreener. You know every memecoin meta, every AI agent narrative, every CT influencer call. Your job is to give the REAL picture of what degens are actually aping into right now.
+      messages: [{ role: 'user', content: `Today is ${today}. You are a degenerate crypto trader who spends 16 hours a day on Crypto Twitter, pump.fun, and dexscreener. You know every memecoin meta, every AI agent narrative, every CT influencer call. Your job is to give the REAL picture of what degens are actually aping into right now.
 
 Focus ONLY on:
 - Memecoins: what animal meta is running (dogs, cats, frogs, penguins etc), what pump.fun tokens are going viral, what CT influencers are shilling, what's getting 10x-100x talk right now
