@@ -148,9 +148,17 @@ Return ONLY this JSON: {"formation":"pattern name","bias":"bullish|bearish|neutr
 
     const data = await callClaude({ model: HAIKU, max_tokens: 600, messages: [{ role: 'user', content: prompt }] });
     const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    const match = txt.match(/\{[\s\S]*\}/);
+    const cleaned = txt.replace(/```json/g, '').replace(/```/g, '').replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').trim();
+    const match = cleaned.match(/\{[\s\S]*\}/);
     if (!match) throw new Error('No analysis in Claude response');
-    res.json({ analysis: JSON.parse(match[0]) });
+    let analysis;
+    try {
+      analysis = JSON.parse(match[0]);
+    } catch (e2) {
+      const safe = match[0].replace(/("(?:[^"\\]|\\.)*")|'([^'\\]|\\.)*'/g, m => m.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t'));
+      analysis = JSON.parse(safe);
+    }
+    res.json({ analysis });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
