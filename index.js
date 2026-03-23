@@ -245,6 +245,7 @@ app.post('/api/onchain', rateLimit, async (req, res) => {
 app.post('/api/pairanalysis', rateLimit, async (req, res) => {
   const { pairs } = req.body;
   if (!pairs || !Array.isArray(pairs)) return res.status(400).json({ error: 'missing pairs array' });
+ if (pairs.length > 100) return res.status(400).json({ error: 'too many pairs' });
   try { res.json(analysePairs(pairs)); }
   catch (e) { res.status(500).json({ error: e.message }); }
 });
