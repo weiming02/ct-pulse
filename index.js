@@ -251,7 +251,63 @@ function analysePairs(pairs) {
     multiPairFlags.push(thinPairs.length + ' pairs have under $5K liquidity but active trading volume — wash trading or honeypot trap to create illusion of activity');
   }
  
-  return { priceImpact, pairBreakdown, multiPairFlags, topPairPct, totalPairs: pairs.length, totalLiq };
+  // ── BUY/SELL PRESSURE RATIO ──────────────────────────────────
+  const totalBuys1h = pairs.reduce((s, p) => s + (p.txns?.h1?.buys || 0), 0);
+  const totalSells1h = pairs.reduce((s, p) => s + (p.txns?.h1?.sells || 0), 0);
+  const totalBuys24h = pairs.reduce((s, p) => s + (p.txns?.h24?.buys || 0), 0);
+  const totalSells24h = pairs.reduce((s, p) => s + (p.txns?.h24?.sells || 0), 0);
+  const totalTxns1h = totalBuys1h + totalSells1h;
+  const totalTxns24h = totalBuys24h + totalSells24h;
+  const buyPct1h = totalTxns1h > 0 ? ((totalBuys1h / totalTxns1h) * 100).toFixed(0) : null;
+  const buyPct24h = totalTxns24h > 0 ? ((totalBuys24h / totalTxns24h) * 100).toFixed(0) : null;
+ 
+  const buySellFlags = [];
+  if (buyPct1h !== null) {
+    const bp = parseInt(buyPct1h);
+    if (bp >= 90 && totalTxns1h > 20) buySellFlags.push('1H buy ratio is ' + bp + '% (' + totalBuys1h + ' buys vs ' + totalSells1h + ' sells) — coordinated bot buying pattern, likely artificial price support before dump');
+    else if (bp >= 80 && totalTxns1h > 10) buySellFlags.push('1H buy ratio is ' + bp + '% — unusually high, possible coordinated accumulation or wash trading');
+    else if (bp <= 20 && totalTxns1h > 20) buySellFlags.push('1H sell ratio is ' + (100 - bp) + '% (' + totalSells1h + ' sells vs ' + totalBuys1h + ' buys) — coordinated exit in progress');
+  }
+ 
+  // ── LIQUIDITY AGE WARNING ─────────────────────────────────────
+  const now = Date.now();
+  const liqAgeFlags = [];
+  const pairAges = pairs
+    .filter(p => p.pairCreatedAt && (p.liquidity?.usd || 0) > 1000)
+    .map(p => ({ age: (now - p.pairCreatedAt) / 3600000, liq: p.liquidity?.usd || 0, dex: p.dexId || 'unknown' }))
+    .sort((a, b) => a.age - b.age);
+ 
+  if (pairAges.length > 0) {
+    const newestPair = pairAges[0];
+    if (newestPair.age < 24) {
+      liqAgeFlags.push('new liquidity pool opened ' + newestPair.age.toFixed(1) + 'h ago on ' + newestPair.dex + ' with ' + formatUsd(newestPair.liq) + ' — fresh liquidity injection on existing token is a classic pre-pump setup');
+    } else if (newestPair.age < 48) {
+      liqAgeFlags.push('liquidity added to ' + newestPair.dex + ' within last 48h (' + newestPair.age.toFixed(0) + 'h ago) — recent liquidity injection, monitor for coordinated pump');
+    }
+    // check if multiple new pools opened recently
+    const veryNewPools = pairAges.filter(p => p.age < 48);
+    if (veryNewPools.length >= 2) {
+      liqAgeFlags.push(veryNewPools.length + ' new liquidity pools opened within 48h — rapid multi-pool deployment is a known tactic to create trading activity illusion');
+    }
+  }
+ 
+  // ── EXIT TIME ESTIMATOR ───────────────────────────────────────
+  const vol24h = pairs.reduce((s, p) => s + (p.volume?.h24 || 0), 0);
+  const hourlyVol = vol24h / 24;
+  const exitTimes = [5000, 10000, 50000].map(posSize => {
+    // to exit with under 5% slippage, can only sell ~5% of hourly volume per hour
+    const safeHourlySell = hourlyVol * 0.05;
+    if (safeHourlySell <= 0) return { posSize, hours: null };
+    const hours = posSize / safeHourlySell;
+    return { posSize, hours: hours < 1 ? '<1' : hours > 720 ? '>720' : hours.toFixed(0) };
+  });
+ 
+  return {
+    priceImpact, pairBreakdown, multiPairFlags, topPairPct,
+    totalPairs: pairs.length, totalLiq,
+    buyPct1h, buyPct24h, totalBuys1h, totalSells1h, totalBuys24h, totalSells24h,
+    buySellFlags, liqAgeFlags, exitTimes
+  };
 }
  
 function formatUsd(n) {
@@ -324,3 +380,4 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
 });
  
 module.exports = app;
+ 
