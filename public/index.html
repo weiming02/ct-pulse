@@ -445,21 +445,14 @@ let charts={'1h':null,'4h':null};
 let candles={'1h':[],'4h':[]};
 let levels={'1h':{support:[],resistance:[]},'4h':{support:[],resistance:[]}};
 let currentPair=null;
-let cachedApiKey=null;
+
  
 function safe(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('ctpulse_theme',document.body.classList.contains('light')?'light':'dark');}
 const savedTheme=localStorage.getItem('ctpulse_theme');
 if(savedTheme==='light')document.body.classList.add('light');
  
-async function getApiKey(){
-  if(cachedApiKey)return cachedApiKey;
-  const res=await fetch('/api/key');
-  const data=await res.json();
-  if(data.error)throw new Error('Could not get API key');
-  cachedApiKey=data.key;
-  return cachedApiKey;
-}
+
  
 const MSGS_N=['scanning for emerging tech narratives...','finding the real signal...','separating alpha from noise...','checking what builders are shipping...'];
 const MSGS_CA=['fetching token data from DEXScreener...','pulling 1H candles...','pulling 4H candles...','sending to AI analyst...','identifying formations + entry zones...'];
@@ -690,12 +683,12 @@ async function analyseCA(){
     const s1h=fmtLvls(levels['1h']);const s4h=fmtLvls(levels['4h']);
     const c1h=candles['1h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
     const c4h=candles['4h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
-    const apiKey=await getApiKey();
+    
     const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. Entry zones must always be BELOW current price for bearish bias, ABOVE for bullish. Current price is '+parseFloat(pair.priceUsd).toFixed(10)+'. TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+parseFloat(pair.priceUsd).toFixed(10)+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' 1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+'  4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+'  1H_CLOSES: '+c1h.join(',')+' 4H_CLOSES: '+c4h.join(',')+' Return this JSON: {"formation":"name","bias":"bullish or bearish or neutral","pattern_description":"4H structure and 1H timing and meaning","momentum":"pressure and conviction","key_levels":"levels with prices and note the MCAP of '+tokenData.marketCap+' for context on liquidity risk","volume_story":"accumulation or distribution relative to the '+tokenData.marketCap+' marketcap","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for position sizing here"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for liquidity risk here"}],"invalidation":"price and meaning","verdict":"honest take including whether the '+tokenData.marketCap+' MCAP is appropriate risk for this setup"}';
-    const analysisRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,messages:[{role:'user',content:prompt}]})});
+    const analysisRes=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
     const analysisData=await analysisRes.json();
-    if(!analysisRes.ok)throw new Error(analysisData.error?.message||'API error');
-    const rawTxt=analysisData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    if(!analysisRes.ok)throw new Error(analysisData.error||'API error');
+    const rawTxt=analysisData.text||'';
     const jsonMatch=rawTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
     if(!jsonMatch)throw new Error('No analysis returned');
     let analysis;
@@ -786,11 +779,11 @@ async function compareTokens(){
     document.getElementById('cmp-table').innerHTML=tableHtml;
     // AI verdict
     document.getElementById('cmp-msg').textContent='asking AI for verdict...';
-    const apiKey=await getApiKey();
+    
     const cmpPrompt='You are a crypto analyst comparing two tokens. Return ONLY a raw JSON object, no markdown, no code blocks, only double quotes, no apostrophes, no newlines inside strings. TOKEN_A: '+nameA+' MCAP:'+fmt(mcapA)+' LIQ:'+fmt(totalLiqA)+' VOL:'+fmt(totalVolA)+' 24H:'+fmtPct(chgA)+' AGE:'+Math.round(ageA)+'d CHAIN:'+pA.chainId+' TOKEN_B: '+nameB+' MCAP:'+fmt(mcapB)+' LIQ:'+fmt(totalLiqB)+' VOL:'+fmt(totalVolB)+' 24H:'+fmtPct(chgB)+' AGE:'+Math.round(ageB)+'d CHAIN:'+pB.chainId+' Return: {"verdict":"3-4 sentence honest comparison — which is the better risk-reward play right now and why, citing specific numbers. Be direct about which one you would rather be in if forced to choose."}';
-    const cmpRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,temperature:0,messages:[{role:'user',content:cmpPrompt}]})});
+    const cmpRes=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:cmpPrompt})});
     const cmpData=await cmpRes.json();
-    const cmpTxt=cmpData.content?.filter(b=>b.type==='text').map(b=>b.text).join('')||'';
+    const cmpTxt=cmpData.text||'';
     const cmpMatch=cmpTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
     let verdict='—';
     if(cmpMatch){try{verdict=JSON.parse(cmpMatch[0]).verdict||'—';}catch(e){verdict='—';}}
@@ -1002,14 +995,14 @@ async function rugCheck(){
       if(pairAnalysis.buyPct1h!==null)onchainContext+='1H BUY PRESSURE: '+pairAnalysis.buyPct1h+'%. ';
     }
     document.getElementById('rug-msg').textContent=MSGS_RUG[4];
-    const apiKey=await getApiKey();
+    
     const zachPrompt=isDead
       ?'You are a blockchain forensics investigator. Write a ZachXBT-style post-mortem on this dead token. Cite exact numbers. Return ONLY raw JSON, no markdown, only double quotes, no apostrophes, no newlines inside strings. TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)+' MCAP: '+fmt(mcapUsd)+' CAP TIER: '+capTier+' LIQUIDITY: '+fmt(liqUsd)+' LIQ/MCAP: '+liqToMcap.toFixed(2)+'% PEAK: '+fmtP(maxClose1h)+' CURRENT: '+fmtP(recentClose)+' DRAWDOWN: '+drawdownPct.toFixed(1)+'% VOL 1H: '+fmt(totalVolume1h)+' 6H: '+fmt(totalVolume6h)+' 24H: '+fmt(totalVolume24h)+' VOLUME TREND: '+volTrend.toFixed(0)+'% PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)+' AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' PAIRS: '+numPairs+' '+onchainContext+' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')+' Return JSON: {"threat_score":100,"mode":"postmortem","verdict_title":"5-7 word specific verdict","verdict_summary":"2 sentences citing exact numbers","flags":[{"severity":"red","title":"flag","detail":"exact data"}],"price_forensics":"exact price death description","liquidity_forensics":"how liquidity was drained","volume_forensics":"volume signature before death","wallet_forensics":"what on-chain data reveals","structural_risk":"why this token was vulnerable","cause_of_death":"single precise cause","narrative_used":"what CT hype was used","warning_signs":"specific data points visible before collapse","timeline":[{"event":"title","detail":"what happened","severity":"red or amber"}],"lessons":"3 specific lessons","investigator_verdict":"3-sentence final verdict"}'
       :'You are a blockchain forensics investigator. Investigate this LIVE token. Be specific. Do NOT flag low liq/mcap for large caps above $100M. Return ONLY raw JSON, no markdown, only double quotes, no apostrophes, no newlines inside strings. TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)+' MCAP: '+fmt(mcapUsd)+' CAP TIER: '+capTier+' LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs LIQ/MCAP: '+liqToMcap.toFixed(2)+'% ('+liqRiskLabel+') 24H VOL: '+fmt(totalVolume24h)+' VOL/LIQ: '+volToLiq.toFixed(1)+'% PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)+' AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' DRAWDOWN: '+drawdownPct.toFixed(1)+'% VOLUME TREND: '+volTrend.toFixed(0)+'% '+onchainContext+' SUSPICIOUS: '+(volToLiq>300?' vol/liq>300%;':'')+(chg24h>200?' 24H pump>200%;':'')+(chg24h<-60?' 24H dump>60%;':'')+(agedays<7&&mcapUsd>1e6?' <7d old with mcap>$1M;':'')+(onchainData?.mintAuthorityEnabled?' MINT ACTIVE;':'')+(onchainData?.freezeAuthorityEnabled?' FREEZE ACTIVE;':'')+(onchainData?.serialRuggerSignal?' SERIAL DEPLOYER;':'')+(onchainData?.isVerified===false?' UNVERIFIED;':'')+(parseFloat(onchainData?.top10concentration||0)>80?' TOP10 HOLD '+onchainData?.top10concentration+'%;':'')+' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')+' LAST 10 x 4H: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')+' Return JSON: {"threat_score":0,"mode":"livecheck","verdict_title":"5-7 word verdict","verdict_summary":"2 sentences with exact numbers","flags":[{"severity":"red or amber or green","title":"flag","detail":"exact data"}],"price_forensics":"price action analysis","liquidity_forensics":"liquidity health in context of cap tier","volume_forensics":"organic vs manipulated","wallet_forensics":"what on-chain data reveals","structural_risk":"structural vulnerabilities","timeline":[{"event":"title","detail":"data","severity":"red or amber or green"}],"investigator_verdict":"3-sentence threat assessment"}';
-    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1500,temperature:0,messages:[{role:'user',content:zachPrompt}]})});
+   const zachRes=await fetch('/api/investigate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:zachPrompt})});
     const zachData=await zachRes.json();
-    if(!zachRes.ok)throw new Error(zachData.error?.message||'API error');
-    const zachTxt=zachData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    if(!zachRes.ok)throw new Error(zachData.error||'API error');
+    const zachTxt=zachData.text||'';
     const zachMatch=zachTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
     if(!zachMatch)throw new Error('No investigation report returned');
     let report;
