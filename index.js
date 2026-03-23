@@ -20,6 +20,13 @@ function rateLimit(req, res, next) {
  
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+const SOLSCAN_API_KEY = process.env.SOLSCAN_API_KEY;
+const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+const HAIKU = 'claude-haiku-4-5-20251001';
+ 
+if (!ANTHROPIC_API_KEY) { console.error('ERROR: ANTHROPIC_API_KEY not set'); process.exit(1); }
  
 async function cacheGet(key) {
   if (!UPSTASH_URL || !UPSTASH_TOKEN) return null;
@@ -42,12 +49,6 @@ async function cacheSet(key, value, ttlSeconds) {
   } catch {}
 }
  
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-const HAIKU = 'claude-haiku-4-5-20251001';
- 
-if (!ANTHROPIC_API_KEY) { console.error('ERROR: ANTHROPIC_API_KEY not set'); process.exit(1); }
- 
 async function callClaude(body) {
   const res = await fetch(ANTHROPIC_URL, {
     method: 'POST',
@@ -58,12 +59,177 @@ async function callClaude(body) {
   return res.json();
 }
  
+// ── ETHERSCAN HELPERS ─────────────────────────────────────────
+const ETHERSCAN_BASES = {
+  ethereum: 'https://api.etherscan.io/api',
+  base: 'https://api.basescan.org/api',
+  bsc: 'https://api.bscscan.com/api',
+  arbitrum: 'https://api.arbiscan.io/api',
+  polygon: 'https://api.polygonscan.com/api',
+  optimism: 'https://api-optimistic.etherscan.io/api',
+  avalanche: 'https://api.snowtrace.io/api',
+};
+ 
+function getEtherscanBase(chainId) {
+  const map = {
+    'ethereum': 'ethereum', 'eth': 'ethereum',
+    'base': 'base',
+    'bsc': 'bsc', 'binance-smart-chain': 'bsc',
+    'arbitrum': 'arbitrum', 'arbitrum-one': 'arbitrum',
+    'polygon': 'polygon', 'matic': 'polygon',
+    'optimism': 'optimism',
+    'avalanche': 'avalanche',
+  };
+  return ETHERSCAN_BASES[map[chainId?.toLowerCase()]] || null;
+}
+ 
+async function etherscanFetch(baseUrl, params) {
+  if (!ETHERSCAN_API_KEY) return null;
+  try {
+    const url = new URL(baseUrl);
+    Object.entries({ ...params, apikey: ETHERSCAN_API_KEY }).forEach(([k, v]) => url.searchParams.set(k, v));
+    const res = await fetch(url.toString());
+    const data = await res.json();
+    if (data.status === '0' && data.message === 'NOTOK') return null;
+    return data.result;
+  } catch { return null; }
+}
+ 
+async function getEthOnchainData(contractAddress, chainId) {
+  const base = getEtherscanBase(chainId);
+  if (!base) return null;
+  try {
+    const [holders, transfers, contractInfo] = await Promise.all([
+      etherscanFetch(base, { module: 'token', action: 'tokenholderlist', contractaddress: contractAddress, page: 1, offset: 10, sort: 'desc' }),
+      etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 20, sort: 'desc' }),
+      etherscanFetch(base, { module: 'contract', action: 'getsourcecode', address: contractAddress }),
+    ]);
+ 
+    // get deployer from first tx
+    const firstTx = await etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 1, sort: 'asc' });
+    const deployer = firstTx?.[0]?.from || null;
+ 
+    // get deployer tx history if we have deployer
+    let deployerHistory = null;
+    if (deployer) {
+      deployerHistory = await etherscanFetch(base, { module: 'account', action: 'tokentx', address: deployer, page: 1, offset: 20, sort: 'desc' });
+    }
+ 
+    // process holders
+    const totalSupplyRaw = holders?.reduce((s, h) => s + parseFloat(h.TokenHolderQuantity || 0), 0) || 0;
+    const processedHolders = (holders || []).slice(0, 10).map(h => ({
+      address: h.TokenHolderAddress,
+      pct: totalSupplyRaw > 0 ? ((parseFloat(h.TokenHolderQuantity) / totalSupplyRaw) * 100).toFixed(1) : '?',
+      qty: h.TokenHolderQuantity
+    }));
+ 
+    // top 10 concentration
+    const top10pct = processedHolders.reduce((s, h) => s + parseFloat(h.pct || 0), 0);
+ 
+    // recent large transfers (last 20 txs)
+    const recentTransfers = (transfers || []).slice(0, 10).map(tx => ({
+      from: tx.from?.slice(0, 8) + '...',
+      to: tx.to?.slice(0, 8) + '...',
+      value: parseFloat(tx.value) / Math.pow(10, parseInt(tx.tokenDecimal || 18)),
+      time: new Date(parseInt(tx.timeStamp) * 1000).toISOString().slice(0, 16).replace('T', ' '),
+      hash: tx.hash?.slice(0, 10) + '...'
+    }));
+ 
+    // check if deployer has other tokens (serial rugger signal)
+    const deployerTokenCount = deployerHistory ? new Set(deployerHistory.map(tx => tx.contractAddress)).size : 0;
+ 
+    // is contract verified
+    const isVerified = contractInfo?.[0]?.SourceCode && contractInfo[0].SourceCode !== '';
+ 
+    return {
+      chain: chainId,
+      deployer: deployer ? deployer.slice(0, 10) + '...' : 'unknown',
+      deployerFull: deployer,
+      top10holders: processedHolders,
+      top10concentration: top10pct.toFixed(1),
+      recentTransfers,
+      deployerOtherTokens: deployerTokenCount,
+      isVerified,
+      serialRuggerSignal: deployerTokenCount > 3
+    };
+  } catch { return null; }
+}
+ 
+async function getSolanaOnchainData(mintAddress) {
+  if (!SOLSCAN_API_KEY) return null;
+  try {
+    const headers = { token: SOLSCAN_API_KEY };
+ 
+    const [holdersRes, transfersRes, metaRes] = await Promise.all([
+      fetch('https://pro-api.solscan.io/v2.0/token/holders?address=' + mintAddress + '&page=1&page_size=10', { headers }),
+      fetch('https://pro-api.solscan.io/v2.0/token/transfer?address=' + mintAddress + '&page=1&page_size=20', { headers }),
+      fetch('https://pro-api.solscan.io/v2.0/token/meta?address=' + mintAddress, { headers }),
+    ]);
+ 
+    const holdersData = await holdersRes.json();
+    const transfersData = await transfersRes.json();
+    const metaData = await metaRes.json();
+ 
+    const holders = holdersData?.data?.items || holdersData?.data || [];
+    const transfers = transfersData?.data?.items || transfersData?.data || [];
+    const meta = metaData?.data || {};
+ 
+    const totalSupply = parseFloat(meta.supply || 0);
+    const decimals = parseInt(meta.decimals || 6);
+ 
+    const processedHolders = holders.slice(0, 10).map(h => ({
+      address: (h.address || h.owner || '').slice(0, 8) + '...',
+      pct: totalSupply > 0 ? ((parseFloat(h.amount || h.uiAmount || 0) / (totalSupply / Math.pow(10, decimals))) * 100).toFixed(1) : '?',
+    }));
+ 
+    const top10pct = processedHolders.reduce((s, h) => s + parseFloat(h.pct || 0), 0);
+ 
+    const recentTransfers = transfers.slice(0, 10).map(tx => ({
+      from: (tx.src_owner || tx.from_address || '').slice(0, 8) + '...',
+      to: (tx.dst_owner || tx.to_address || '').slice(0, 8) + '...',
+      value: parseFloat(tx.amount || 0) / Math.pow(10, decimals),
+      time: tx.block_time ? new Date(tx.block_time * 1000).toISOString().slice(0, 16).replace('T', ' ') : '—',
+    }));
+ 
+    return {
+      chain: 'solana',
+      mintAuthority: meta.mint_authority || 'null',
+      freezeAuthority: meta.freeze_authority || 'null',
+      mintAuthorityEnabled: !!meta.mint_authority && meta.mint_authority !== 'null' && meta.mint_authority !== '',
+      freezeAuthorityEnabled: !!meta.freeze_authority && meta.freeze_authority !== 'null' && meta.freeze_authority !== '',
+      top10holders: processedHolders,
+      top10concentration: top10pct.toFixed(1),
+      recentTransfers,
+      totalSupply: meta.supply,
+      decimals,
+    };
+  } catch { return null; }
+}
+ 
+// ── API ROUTES ────────────────────────────────────────────────
 app.get('/api/key', rateLimit, (req, res) => {
   const origin = req.headers.referer || req.headers.origin || '';
   if (!origin.includes('ct-pulse.vercel.app') && !origin.includes('localhost')) {
     return res.status(403).json({ error: 'forbidden' });
   }
   res.json({ key: ANTHROPIC_API_KEY });
+});
+ 
+app.post('/api/onchain', rateLimit, async (req, res) => {
+  const { contractAddress, chainId } = req.body;
+  if (!contractAddress || !chainId) return res.status(400).json({ error: 'missing contractAddress or chainId' });
+  try {
+    let data = null;
+    if (chainId === 'solana') {
+      data = await getSolanaOnchainData(contractAddress);
+    } else {
+      data = await getEthOnchainData(contractAddress, chainId);
+    }
+    if (!data) return res.json({ available: false, reason: 'chain not supported or API unavailable' });
+    res.json({ available: true, ...data });
+  } catch (e) {
+    res.json({ available: false, reason: e.message });
+  }
 });
  
 app.post('/api/narratives', rateLimit, async (req, res) => {
@@ -91,3 +257,4 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
 });
  
 module.exports = app;
+ 
