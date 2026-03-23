@@ -69,11 +69,11 @@ const CHAIN_IDS = {
   'optimism': '10',
   'avalanche': '43114',
 };
-
+ 
 function getChainId(chainId) {
   return CHAIN_IDS[chainId?.toLowerCase()] || null;
 }
-
+ 
 async function etherscanFetch(chainNumericId, params) {
   if (!ETHERSCAN_API_KEY) return null;
   try {
@@ -93,7 +93,6 @@ async function getEthOnchainData(contractAddress, chainId) {
   const chainNumericId = getChainId(chainId);
   if (!chainNumericId) return null;
   try {
-    // get contract creation info — works on free tier
     const [contractInfo, txList] = await Promise.all([
       etherscanFetch(chainNumericId, {
         module: 'contract', action: 'getsourcecode', address: contractAddress
@@ -103,92 +102,91 @@ async function getEthOnchainData(contractAddress, chainId) {
         page: 1, offset: 10, sort: 'asc'
       }),
     ]);
-
-    // deployer is whoever sent the first tx to this contract
+ 
     const deployer = txList?.[0]?.from || null;
-
-    // get deployer's token deployments to check for serial rugger
+    const deployerFundedAt = txList?.[0]?.timeStamp ? new Date(parseInt(txList[0].timeStamp) * 1000).toISOString().slice(0, 10) : null;
+ 
     let deployerOtherTokens = 0;
+    let deployerAge = null;
     if (deployer) {
       const deployerTxs = await etherscanFetch(chainNumericId, {
         module: 'account', action: 'txlist', address: deployer,
-        page: 1, offset: 50, sort: 'desc'
+        page: 1, offset: 50, sort: 'asc'
       });
-      // count unique contracts deployed by this wallet
-      deployerOtherTokens = (deployerTxs || [])
-        .filter(tx => tx.to === '' || tx.to === null)
-        .length;
+      deployerOtherTokens = (deployerTxs || []).filter(tx => !tx.to || tx.to === '').length;
+      if (deployerTxs?.[0]?.timeStamp) {
+        const firstTxDate = new Date(parseInt(deployerTxs[0].timeStamp) * 1000);
+        const ageDays = Math.floor((Date.now() - firstTxDate.getTime()) / 86400000);
+        deployerAge = ageDays;
+      }
     }
-
-    // get recent normal txs to the contract for activity
+ 
     const recentTxs = await etherscanFetch(chainNumericId, {
       module: 'account', action: 'txlist', address: contractAddress,
       page: 1, offset: 10, sort: 'desc'
     });
-
+ 
     const recentTransfers = (recentTxs || []).slice(0, 8).map(tx => ({
       from: (tx.from || '').slice(0, 8) + '...',
       to: (tx.to || '').slice(0, 8) + '...',
       value: parseFloat(tx.value || 0) / 1e18,
       time: tx.timeStamp ? new Date(parseInt(tx.timeStamp) * 1000).toISOString().slice(0, 16).replace('T', ' ') : '—',
     }));
-
+ 
     const isVerified = !!(contractInfo?.[0]?.SourceCode && contractInfo[0].SourceCode !== '');
-
+ 
+    // contract address pattern flags
+    const contractPatternFlags = [];
+    if (deployerAge !== null && deployerAge < 30) contractPatternFlags.push('deployer wallet is less than 30 days old — fresh wallet is a classic rug setup');
+    if (deployerOtherTokens > 5) contractPatternFlags.push('deployer has launched ' + deployerOtherTokens + ' contracts — serial deployer pattern');
+    if (!isVerified) contractPatternFlags.push('contract source code not verified — team is hiding the code');
+    if (deployerAge !== null && deployerAge < 7 && deployerOtherTokens > 1) contractPatternFlags.push('new wallet deploying multiple contracts rapidly — coordinated rug operation pattern');
+ 
     return {
       chain: chainId,
       deployer: deployer ? deployer.slice(0, 10) + '...' : 'unknown',
       deployerFull: deployer,
+      deployerAge,
+      deployerFundedAt,
       top10holders: [],
       top10concentration: 'N/A',
-      top10note: 'holder data requires Etherscan Pro — upgrade at etherscan.io',
       recentTransfers,
       deployerOtherTokens,
       isVerified,
-      serialRuggerSignal: deployerOtherTokens > 5
+      serialRuggerSignal: deployerOtherTokens > 5,
+      contractPatternFlags,
     };
   } catch (e) { return null; }
 }
-
-    // infer holder concentration from recent transfers
-    
  
 async function getSolanaOnchainData(mintAddress) {
   if (!SOLSCAN_API_KEY) return null;
   try {
     const headers = { token: SOLSCAN_API_KEY };
- 
     const [holdersRes, transfersRes, metaRes] = await Promise.all([
       fetch('https://pro-api.solscan.io/v2.0/token/holders?address=' + mintAddress + '&page=1&page_size=10', { headers }),
       fetch('https://pro-api.solscan.io/v2.0/token/transfer?address=' + mintAddress + '&page=1&page_size=20', { headers }),
       fetch('https://pro-api.solscan.io/v2.0/token/meta?address=' + mintAddress, { headers }),
     ]);
- 
     const holdersData = await holdersRes.json();
     const transfersData = await transfersRes.json();
     const metaData = await metaRes.json();
- 
     const holders = holdersData?.data?.items || holdersData?.data || [];
     const transfers = transfersData?.data?.items || transfersData?.data || [];
     const meta = metaData?.data || {};
- 
     const totalSupply = parseFloat(meta.supply || 0);
     const decimals = parseInt(meta.decimals || 6);
- 
     const processedHolders = holders.slice(0, 10).map(h => ({
       address: (h.address || h.owner || '').slice(0, 8) + '...',
       pct: totalSupply > 0 ? ((parseFloat(h.amount || h.uiAmount || 0) / (totalSupply / Math.pow(10, decimals))) * 100).toFixed(1) : '?',
     }));
- 
     const top10pct = processedHolders.reduce((s, h) => s + parseFloat(h.pct || 0), 0);
- 
     const recentTransfers = transfers.slice(0, 10).map(tx => ({
       from: (tx.src_owner || tx.from_address || '').slice(0, 8) + '...',
       to: (tx.dst_owner || tx.to_address || '').slice(0, 8) + '...',
       value: parseFloat(tx.amount || 0) / Math.pow(10, decimals),
       time: tx.block_time ? new Date(tx.block_time * 1000).toISOString().slice(0, 16).replace('T', ' ') : '—',
     }));
- 
     return {
       chain: 'solana',
       mintAuthority: meta.mint_authority || 'null',
@@ -200,8 +198,68 @@ async function getSolanaOnchainData(mintAddress) {
       recentTransfers,
       totalSupply: meta.supply,
       decimals,
+      contractPatternFlags: [],
     };
   } catch { return null; }
+}
+ 
+// ── PRICE IMPACT + LIQUIDITY ANALYSIS ────────────────────────
+function analysePairs(pairs) {
+  const totalLiq = pairs.reduce((s, p) => s + (p.liquidity?.usd || 0), 0);
+ 
+  // price impact using constant product AMM formula: impact = sellSize / (liq + sellSize)
+  const calcImpact = (sellUsd, liqUsd) => {
+    if (!liqUsd || liqUsd <= 0) return 100;
+    return ((sellUsd / (liqUsd + sellUsd)) * 100);
+  };
+ 
+  const priceImpact = [1000, 5000, 10000, 50000].map(size => ({
+    size,
+    impact: calcImpact(size, totalLiq),
+    label: size >= 1000 ? '$' + (size / 1000) + 'K' : '$' + size
+  }));
+ 
+  // per-pair liquidity breakdown
+  const pairBreakdown = pairs
+    .sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))
+    .slice(0, 8)
+    .map(p => ({
+      dex: p.dexId || 'unknown',
+      chain: p.chainId || '',
+      liq: p.liquidity?.usd || 0,
+      vol24h: p.volume?.h24 || 0,
+      pct: totalLiq > 0 ? (((p.liquidity?.usd || 0) / totalLiq) * 100).toFixed(1) : '0',
+      pairAddress: p.pairAddress ? p.pairAddress.slice(0, 8) + '...' : '—'
+    }));
+ 
+  // largest single pair concentration
+  const topPairPct = pairBreakdown.length > 0 ? parseFloat(pairBreakdown[0].pct) : 0;
+ 
+  // multi-pair trap detection
+  const multiPairFlags = [];
+  if (pairs.length > 8 && totalLiq < 500000) {
+    multiPairFlags.push('token spread across ' + pairs.length + ' pairs with only ' + formatUsd(totalLiq) + ' total liquidity — each exit point is razor thin, slippage will be extreme');
+  }
+  if (pairs.length > 3 && topPairPct < 30) {
+    multiPairFlags.push('liquidity is fragmented — largest single pool holds only ' + topPairPct + '% of total liquidity, no clean exit exists');
+  }
+  if (topPairPct > 95 && pairs.length > 1) {
+    multiPairFlags.push('95%+ of liquidity sits in one pool — if that pool is drained the entire token becomes illiquid instantly');
+  }
+  const thinPairs = pairs.filter(p => (p.liquidity?.usd || 0) < 5000 && (p.volume?.h24 || 0) > 1000);
+  if (thinPairs.length > 2) {
+    multiPairFlags.push(thinPairs.length + ' pairs have under $5K liquidity but active trading volume — wash trading or honeypot trap to create illusion of activity');
+  }
+ 
+  return { priceImpact, pairBreakdown, multiPairFlags, topPairPct, totalPairs: pairs.length, totalLiq };
+}
+ 
+function formatUsd(n) {
+  if (!n && n !== 0) return '—';
+  if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
+  return '$' + Number(n).toFixed(2);
 }
  
 // ── API ROUTES ────────────────────────────────────────────────
@@ -230,6 +288,17 @@ app.post('/api/onchain', rateLimit, async (req, res) => {
   }
 });
  
+app.post('/api/pairanalysis', rateLimit, async (req, res) => {
+  const { pairs } = req.body;
+  if (!pairs || !Array.isArray(pairs)) return res.status(400).json({ error: 'missing pairs array' });
+  try {
+    const analysis = analysePairs(pairs);
+    res.json(analysis);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+ 
 app.post('/api/narratives', rateLimit, async (req, res) => {
   try {
     const CACHE_KEY = 'ct_narratives_v6';
@@ -255,4 +324,3 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
 });
  
 module.exports = app;
- 
