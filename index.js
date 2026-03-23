@@ -151,52 +151,7 @@ async function getEthOnchainData(contractAddress, chainId) {
 }
 
     // infer holder concentration from recent transfers
-    const holderMap = {};
-    (transfers || []).forEach(tx => {
-      const to = tx.to?.toLowerCase();
-      const from = tx.from?.toLowerCase();
-      const val = parseFloat(tx.value || 0);
-      if (to) holderMap[to] = (holderMap[to] || 0) + val;
-      if (from) holderMap[from] = (holderMap[from] || 0) - val;
-    });
-    const positiveHolders = Object.entries(holderMap)
-      .filter(([, v]) => v > 0)
-      .sort((a, b) => b[1] - a[1]);
-    const totalInferred = positiveHolders.reduce((s, [, v]) => s + v, 0);
-    const top10 = positiveHolders.slice(0, 10).map(([addr, val]) => ({
-      address: addr.slice(0, 8) + '...',
-      pct: totalInferred > 0 ? ((val / totalInferred) * 100).toFixed(1) : '?'
-    }));
-    const top10pct = top10.reduce((s, h) => s + parseFloat(h.pct || 0), 0);
-
-    // recent transfers (last 10)
-    const recentTransfers = (transfers || []).slice(0, 10).map(tx => ({
-      from: (tx.from || '').slice(0, 8) + '...',
-      to: (tx.to || '').slice(0, 8) + '...',
-      value: parseFloat(tx.value || 0) / Math.pow(10, parseInt(tx.tokenDecimal || 18)),
-      time: tx.timeStamp ? new Date(parseInt(tx.timeStamp) * 1000).toISOString().slice(0, 16).replace('T', ' ') : '—',
-    }));
-
-    const deployerOtherTokens = deployerHistory
-      ? new Set(deployerHistory.map(tx => tx.contractAddress?.toLowerCase()).filter(Boolean)).size
-      : 0;
-
-    const isVerified = !!(contractInfo?.[0]?.SourceCode && contractInfo[0].SourceCode !== '');
-
-    return {
-      chain: chainId,
-      deployer: deployer ? deployer.slice(0, 10) + '...' : 'unknown',
-      deployerFull: deployer,
-      top10holders: top10,
-      top10concentration: top10pct.toFixed(1),
-      top10note: 'estimated from recent 50 transfers',
-      recentTransfers,
-      deployerOtherTokens,
-      isVerified,
-      serialRuggerSignal: deployerOtherTokens > 3
-    };
-  } catch (e) { return null; }
-}
+    
  
 async function getSolanaOnchainData(mintAddress) {
   if (!SOLSCAN_API_KEY) return null;
