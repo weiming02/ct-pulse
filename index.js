@@ -78,8 +78,12 @@ async function etherscanFetch(chainNumericId, params) {
   if (!ETHERSCAN_API_KEY) return null;
   try {
     const url = new URL('https://api.etherscan.io/v2/api');
-    Object.entries({ ...params, chainid: chainNumericId, apikey: ETHERSCAN_API_KEY }).forEach(([k, v]) => url.searchParams.set(k, v));
-    const res = await fetch(url.toString());
+    Object.entries({ ...params, chainid: chainNumericId }).forEach(([k, v]) => url.searchParams.set(k, v));
+    const res = await fetch(url.toString(), {
+      headers: {
+        'X-Apikey': 8AQYZRBUJZ8M11P4Y4ABNTXR4U8YXTQP4B
+      }
+    });
     const data = await res.json();
     if (data.status === '0' && data.message === 'NOTOK') return null;
     return data.result;
