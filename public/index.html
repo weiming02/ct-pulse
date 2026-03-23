@@ -954,7 +954,7 @@ async function rugCheck(){
         +' LAST 10 x 4H CLOSES: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')
         +' Return JSON: {"threat_score":0,"mode":"livecheck","verdict_title":"5-7 word specific verdict","verdict_summary":"2 sentences citing exact numbers","flags":[{"severity":"red or amber or green","title":"flag","detail":"exact data"}],"price_forensics":"price action analysis for manipulation signals","liquidity_forensics":"liquidity health in context of cap tier","volume_forensics":"organic vs manipulated volume assessment","wallet_forensics":"what the on-chain wallet data reveals","structural_risk":"structural vulnerabilities","timeline":[{"event":"title","detail":"what the data shows","severity":"red or amber or green"}],"investigator_verdict":"3-sentence ZachXBT-style threat assessment"}';
  
-    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,messages:[{role:'user',content:zachPrompt}]})});
+    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1500,temperature:0,messages:[{role:'user',content:zachPrompt}]})});
     const zachData=await zachRes.json();
     if(!zachRes.ok)throw new Error(zachData.error?.message||'API error');
     const zachTxt=zachData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
@@ -962,7 +962,32 @@ async function rugCheck(){
     if(!zachMatch)throw new Error('No investigation report returned');
     let report;
     try{report=JSON.parse(zachMatch[0]);}
-    catch(pe){const fixed=zachMatch[0].replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\u2013\u2014]/g,'-').replace(/[\u0000-\u001F\u007F-\u009F]/g,' ').replace(/,(\s*[}\]])/g,'$1');report=JSON.parse(fixed);}
+    catch(pe){
+      const fixed=zachMatch[0]
+        .replace(/[\u2018\u2019\u2032]/g,"'")
+        .replace(/[\u201C\u201D]/g,'"')
+        .replace(/[\u2013\u2014\u2015]/g,'-')
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g,' ')
+        .replace(/,(\s*[}\]])/g,'$1')
+        .replace(/([^\\])\\([^"\\\/bfnrtu])/g,'$1 $2')
+        .replace(/\n/g,' ')
+        .replace(/\r/g,' ')
+        .replace(/\t/g,' ');
+      try{report=JSON.parse(fixed);}
+      catch(pe2){
+        // last resort — extract what we can
+        const scoreMatch=fixed.match(/"threat_score"\s*:\s*(\d+)/);
+        const titleMatch=fixed.match(/"verdict_title"\s*:\s*"([^"]+)"/);
+        const summaryMatch=fixed.match(/"verdict_summary"\s*:\s*"([^"]+)"/);
+        report={
+          threat_score:scoreMatch?parseInt(scoreMatch[1]):50,
+          verdict_title:titleMatch?titleMatch[1]:'Analysis incomplete',
+          verdict_summary:summaryMatch?summaryMatch[1]:'JSON parse error — partial data shown',
+          flags:[],price_forensics:'—',liquidity_forensics:'—',volume_forensics:'—',
+          wallet_forensics:'—',structural_risk:'—',timeline:[],investigator_verdict:'—'
+        };
+      }
+    }
  
     // render threat score
     const score=Math.min(100,Math.max(0,parseInt(report.threat_score)||0));
