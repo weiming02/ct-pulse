@@ -875,7 +875,10 @@ async function rugCheck(){
       return liqToMcap<10?'DANGER: extreme risk':(liqToMcap<30?'very risky':'high but micro cap');
     })();
 
-    const isDead=liqUsd<5000||drawdownPct>85||volTrend<5;
+    const noActivity=totalVolume24h<100&&totalVolume6h<20;
+const priceCollapsed=drawdownPct>85&&recentClose<maxClose1h*0.15;
+const volumeCompletelyDead=volTrend<3&&avgVol<10;
+const isDead=(noActivity&&priceCollapsed)||(volumeCompletelyDead&&drawdownPct>70)||(noActivity&&volumeCompletelyDead);
     const mode=isDead?'postmortem':'livecheck';
 
     document.getElementById('rug-msg').textContent=MSGS_RUG[4];
