@@ -394,6 +394,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     <div id="onchain-body"></div>
   </div>
  
+  <div class="onchain-panel" id="pair-analysis-panel" style="display:none">
+    <div class="onchain-title">LIQUIDITY INTELLIGENCE</div>
+    <div id="pair-analysis-body"></div>
+  </div>
+ 
   <div class="rug-flags" id="rug-flags">
     <div class="rug-flags-title">SUSPICIOUS ACTIVITY FLAGS</div>
     <div class="flag-list" id="flag-list"></div>
@@ -671,7 +676,56 @@ function renderAnalysis(a,mcap,pair){
   });
 }
  
-// ── RENDER ON-CHAIN PANEL ─────────────────────────────────────
+// ── RENDER PAIR ANALYSIS PANEL ────────────────────────────────
+function renderPairAnalysis(pa){
+  const panel=document.getElementById('pair-analysis-panel');
+  if(!pa){panel.style.display='none';return;}
+  let html='';
+ 
+  // price impact section
+  html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:10px">PRICE IMPACT CALCULATOR — what happens when you sell</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:16px">';
+  (pa.priceImpact||[]).forEach(p=>{
+    const imp=parseFloat(p.impact||0);
+    const col=imp>10?'var(--red)':imp>5?'var(--amber)':'var(--green)';
+    html+='<div style="background:var(--bg3);padding:10px 12px;text-align:center">';
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:4px">'+safe(p.label)+' SELL</div>';
+    html+='<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+col+'">'+imp.toFixed(1)+'%</div>';
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:2px">price drop</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+ 
+  // multi-pair trap flags
+  if(pa.multiPairFlags&&pa.multiPairFlags.length>0){
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.08em;margin-bottom:8px">MULTI-PAIR TRAP SIGNALS</div>';
+    pa.multiPairFlags.forEach(f=>{
+      html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';
+    });
+    html+='<div style="margin-bottom:14px"></div>';
+  }
+ 
+  // liquidity per pair breakdown
+  html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:8px">LIQUIDITY PER TRADING PAIR ('+safe(String(pa.totalPairs||0))+' total pairs)</div>';
+  html+='<table class="holders-table"><thead><tr><th>DEX</th><th>CHAIN</th><th>LIQUIDITY</th><th>24H VOL</th><th>% OF TOTAL</th></tr></thead><tbody>';
+  (pa.pairBreakdown||[]).forEach((p,i)=>{
+    const pct=parseFloat(p.pct||0);
+    const barClass=pct>80?'pct-fill-danger':'pct-fill';
+    html+='<tr>';
+    html+='<td style="text-transform:uppercase">'+safe(p.dex||'—')+'</td>';
+    html+='<td style="text-transform:uppercase">'+safe(p.chain||'—')+'</td>';
+    html+='<td>'+safe(fmtNum(p.liq))+'</td>';
+    html+='<td>'+safe(fmtNum(p.vol24h))+'</td>';
+    html+='<td><div class="pct-bar"><div class="'+barClass+'" style="width:'+Math.min(100,pct)+'px"></div><span>'+safe(p.pct)+'%</span></div></td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+ 
+  document.getElementById('pair-analysis-body').innerHTML=html;
+  panel.style.display='block';
+}
+ 
+ 
 function renderOnchainPanel(oc){
   if(!oc||!oc.available){
     document.getElementById('onchain-panel').classList.remove('on');return;
@@ -680,11 +734,7 @@ function renderOnchainPanel(oc){
   const conc=parseFloat(oc.top10concentration||0);
   const concClass=conc>80?'conc-danger':conc>50?'conc-warn':'conc-ok';
   const concLabel=conc>80?'EXTREME CONCENTRATION — top 10 hold '+conc+'%':conc>50?'HIGH CONCENTRATION — top 10 hold '+conc+'%':'HEALTHY — top 10 hold '+conc+'%';
-  const concDisplay = oc.top10concentration === 'N/A'
-  ? '<div class="conc-badge conc-warn">HOLDER DATA: ETHERSCAN PRO REQUIRED</div>'
-  : '<div class="conc-badge '+concClass+'">TOP 10 HOLDER CONCENTRATION: '+conc+'%</div>';
-let html = concDisplay;
-if(oc.top10note) html += '<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:10px">'+safe(oc.top10note)+'</div>';
+  let html='<div class="conc-badge '+concClass+'">TOP 10 HOLDER CONCENTRATION: '+conc+'%</div>';
  
   if(isSol){
     html+='<div class="sol-flags">';
@@ -693,9 +743,19 @@ if(oc.top10note) html += '<div style="font-family:var(--mono);font-size:9px;colo
     html+='</div>';
   }else{
     html+='<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:8px">DEPLOYER: <span style="color:var(--ink2)">'+safe(oc.deployer||'unknown')+'</span>';
-    if(oc.serialRuggerSignal)html+=' <span style="color:var(--red);font-size:9px;padding:1px 6px;border:1px solid rgba(255,68,68,0.4);background:var(--red-bg)">SERIAL DEPLOYER — '+oc.deployerOtherTokens+' other tokens</span>';
+    if(oc.deployerAge!==null&&oc.deployerAge!==undefined){
+      const ageCol=oc.deployerAge<30?'var(--red)':oc.deployerAge<90?'var(--amber)':'var(--green)';
+      html+=' <span style="font-family:var(--mono);font-size:9px;color:'+ageCol+'">wallet age: '+oc.deployerAge+'d</span>';
+    }
+    if(oc.serialRuggerSignal)html+=' <span style="color:var(--red);font-size:9px;padding:1px 6px;border:1px solid rgba(255,68,68,0.4);background:var(--red-bg)">SERIAL DEPLOYER — '+oc.deployerOtherTokens+' contracts</span>';
     html+='</div>';
     html+='<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:8px">CONTRACT: <span style="color:'+(oc.isVerified?'var(--green)':'var(--amber)')+'">'+( oc.isVerified?'VERIFIED':'UNVERIFIED — source code hidden')+'</span></div>';
+    if(oc.contractPatternFlags&&oc.contractPatternFlags.length>0){
+      html+='<div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.08em;margin-bottom:6px;margin-top:10px">CONTRACT PATTERN FLAGS</div>';
+      oc.contractPatternFlags.forEach(f=>{
+        html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:7px 10px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';
+      });
+    }
   }
  
   if(oc.top10holders&&oc.top10holders.length>0){
@@ -728,6 +788,7 @@ async function rugCheck(){
   const btn=document.getElementById('rug-btn');btn.disabled=true;btn.textContent='investigating...';
   document.getElementById('rug-loading').classList.add('on');document.getElementById('rug-msg').textContent=MSGS_RUG[0];
   ['rug-score-wrap','rug-metrics','onchain-panel','rug-flags','zach-report'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById('pair-analysis-panel').style.display='none';
   document.getElementById('rug-empty').style.display='none';
  
   try{
@@ -743,10 +804,11 @@ async function rugCheck(){
     const totalVolume1h=pairs.reduce((s,p)=>s+(p.volume?.h1||0),0);
  
     document.getElementById('rug-msg').textContent=MSGS_RUG[2];
-    const [rugCandles1h,rugCandles4h,onchainData]=await Promise.all([
+    const [rugCandles1h,rugCandles4h,onchainData,pairAnalysis]=await Promise.all([
       fetchCandles(pair,'1h'),
       fetchCandles(pair,'4h'),
-      fetch('/api/onchain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractAddress:ca,chainId:pair.chainId||''})}).then(r=>r.json()).catch(()=>({available:false}))
+      fetch('/api/onchain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractAddress:ca,chainId:pair.chainId||''})}).then(r=>r.json()).catch(()=>({available:false})),
+      fetch('/api/pairanalysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pairs:dsd.pairs||[]})}).then(r=>r.json()).catch(()=>null)
     ]);
  
     document.getElementById('rug-msg').textContent=MSGS_RUG[3];
@@ -798,8 +860,15 @@ async function rugCheck(){
       if(onchainData.recentTransfers?.length>0){
         onchainContext+='Recent large transfers detected: '+onchainData.recentTransfers.length+' transfers in last window. ';
       }
+      if(onchainData.contractPatternFlags?.length>0){
+        onchainContext+='CONTRACT FLAGS: '+onchainData.contractPatternFlags.join(' | ')+'. ';
+      }
     }else{
       onchainContext+='not available for this chain. ';
+    }
+    if(pairAnalysis){
+      onchainContext+='PRICE IMPACT: $1K sell moves price '+pairAnalysis.priceImpact?.[0]?.impact?.toFixed(1)+'%, $10K sell moves '+pairAnalysis.priceImpact?.[2]?.impact?.toFixed(1)+'%. ';
+      if(pairAnalysis.multiPairFlags?.length>0)onchainContext+='MULTI-PAIR FLAGS: '+pairAnalysis.multiPairFlags.join(' | ')+'. ';
     }
  
     document.getElementById('rug-msg').textContent=MSGS_RUG[4];
@@ -842,7 +911,7 @@ async function rugCheck(){
         +' LAST 10 x 4H CLOSES: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')
         +' Return JSON: {"threat_score":0,"mode":"livecheck","verdict_title":"5-7 word specific verdict","verdict_summary":"2 sentences citing exact numbers","flags":[{"severity":"red or amber or green","title":"flag","detail":"exact data"}],"price_forensics":"price action analysis for manipulation signals","liquidity_forensics":"liquidity health in context of cap tier","volume_forensics":"organic vs manipulated volume assessment","wallet_forensics":"what the on-chain wallet data reveals","structural_risk":"structural vulnerabilities","timeline":[{"event":"title","detail":"what the data shows","severity":"red or amber or green"}],"investigator_verdict":"3-sentence ZachXBT-style threat assessment"}';
  
-    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,temperature:0,messages:[{role:'user',content:zachPrompt}]})});
+    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,messages:[{role:'user',content:zachPrompt}]})});
     const zachData=await zachRes.json();
     if(!zachRes.ok)throw new Error(zachData.error?.message||'API error');
     const zachTxt=zachData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
@@ -880,6 +949,7 @@ async function rugCheck(){
  
     // render on-chain panel
     renderOnchainPanel(onchainData);
+    renderPairAnalysis(pairAnalysis);
  
     // render flags
     const flagList=document.getElementById('flag-list');flagList.innerHTML='';
