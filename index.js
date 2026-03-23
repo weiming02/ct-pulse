@@ -60,34 +60,25 @@ async function callClaude(body) {
 }
  
 // ── ETHERSCAN HELPERS ─────────────────────────────────────────
-const ETHERSCAN_BASES = {
-  ethereum: 'https://api.etherscan.io/api',
-  base: 'https://api.basescan.org/api',
-  bsc: 'https://api.bscscan.com/api',
-  arbitrum: 'https://api.arbiscan.io/api',
-  polygon: 'https://api.polygonscan.com/api',
-  optimism: 'https://api-optimistic.etherscan.io/api',
-  avalanche: 'https://api.snowtrace.io/api',
+const CHAIN_IDS = {
+  'ethereum': '1', 'eth': '1',
+  'base': '8453',
+  'bsc': '56', 'binance-smart-chain': '56',
+  'arbitrum': '42161', 'arbitrum-one': '42161',
+  'polygon': '137', 'matic': '137',
+  'optimism': '10',
+  'avalanche': '43114',
 };
- 
-function getEtherscanBase(chainId) {
-  const map = {
-    'ethereum': 'ethereum', 'eth': 'ethereum',
-    'base': 'base',
-    'bsc': 'bsc', 'binance-smart-chain': 'bsc',
-    'arbitrum': 'arbitrum', 'arbitrum-one': 'arbitrum',
-    'polygon': 'polygon', 'matic': 'polygon',
-    'optimism': 'optimism',
-    'avalanche': 'avalanche',
-  };
-  return ETHERSCAN_BASES[map[chainId?.toLowerCase()]] || null;
+
+function getChainId(chainId) {
+  return CHAIN_IDS[chainId?.toLowerCase()] || null;
 }
- 
-async function etherscanFetch(baseUrl, params) {
+
+async function etherscanFetch(chainNumericId, params) {
   if (!ETHERSCAN_API_KEY) return null;
   try {
-    const url = new URL(baseUrl);
-    Object.entries({ ...params, apikey: ETHERSCAN_API_KEY }).forEach(([k, v]) => url.searchParams.set(k, v));
+    const url = new URL('https://api.etherscan.io/v2/api');
+    Object.entries({ ...params, chainid: chainNumericId, apikey: ETHERSCAN_API_KEY }).forEach(([k, v]) => url.searchParams.set(k, v));
     const res = await fetch(url.toString());
     const data = await res.json();
     if (data.status === '0' && data.message === 'NOTOK') return null;
@@ -96,8 +87,9 @@ async function etherscanFetch(baseUrl, params) {
 }
  
 async function getEthOnchainData(contractAddress, chainId) {
-  const base = getEtherscanBase(chainId);
-  if (!base) return null;
+  const chainNumericId = getChainId(chainId);
+if (!chainNumericId) return null;
+const base = chainNumericId;
   try {
     const [transfers, contractInfo, creationTx] = await Promise.all([
       etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 50, sort: 'desc' }),
