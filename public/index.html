@@ -682,21 +682,80 @@ function renderPairAnalysis(pa){
   if(!pa){panel.style.display='none';return;}
   let html='';
  
-  // price impact section
-  html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:10px">PRICE IMPACT CALCULATOR — what happens when you sell</div>';
+  // ── BUY/SELL PRESSURE ──────────────────────────────────────
+  if(pa.buyPct1h!==null&&pa.buyPct1h!==undefined){
+    const bp1=parseInt(pa.buyPct1h),bp24=parseInt(pa.buyPct24h||50);
+    const col1=bp1>=80?'var(--red)':bp1<=30?'var(--amber)':'var(--green)';
+    const col24=bp24>=80?'var(--red)':bp24<=30?'var(--amber)':'var(--green)';
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:10px">BUY / SELL PRESSURE</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:12px">';
+    html+='<div style="background:var(--bg3);padding:12px 14px">';
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:6px">LAST 1H TRANSACTIONS</div>';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+    html+='<div style="height:8px;flex:'+bp1+';background:var(--green);min-width:2px"></div>';
+    html+='<div style="height:8px;flex:'+(100-bp1)+';background:var(--red);min-width:2px"></div>';
+    html+='</div>';
+    html+='<div style="font-family:var(--mono);font-size:10px"><span style="color:var(--green)">'+pa.totalBuys1h+' buys</span> <span style="color:var(--ink3)">vs</span> <span style="color:var(--red)">'+pa.totalSells1h+' sells</span></div>';
+    html+='<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+col1+';margin-top:4px">'+bp1+'% buy pressure</div>';
+    html+='</div>';
+    html+='<div style="background:var(--bg3);padding:12px 14px">';
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:6px">LAST 24H TRANSACTIONS</div>';
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+    html+='<div style="height:8px;flex:'+bp24+';background:var(--green);min-width:2px"></div>';
+    html+='<div style="height:8px;flex:'+(100-bp24)+';background:var(--red);min-width:2px"></div>';
+    html+='</div>';
+    html+='<div style="font-family:var(--mono);font-size:10px"><span style="color:var(--green)">'+pa.totalBuys24h+' buys</span> <span style="color:var(--ink3)">vs</span> <span style="color:var(--red)">'+pa.totalSells24h+' sells</span></div>';
+    html+='<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+col24+';margin-top:4px">'+bp24+'% buy pressure</div>';
+    html+='</div>';
+    html+='</div>';
+    if(pa.buySellFlags&&pa.buySellFlags.length>0){
+      pa.buySellFlags.forEach(f=>{
+        html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';
+      });
+      html+='<div style="margin-bottom:12px"></div>';
+    }
+  }
+ 
+  // ── LIQUIDITY AGE WARNING ───────────────────────────────────
+  if(pa.liqAgeFlags&&pa.liqAgeFlags.length>0){
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.08em;margin-bottom:8px">LIQUIDITY AGE WARNING</div>';
+    pa.liqAgeFlags.forEach(f=>{
+      html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';
+    });
+    html+='<div style="margin-bottom:14px"></div>';
+  }
+ 
+  // ── PRICE IMPACT CALCULATOR ─────────────────────────────────
+  html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:10px">PRICE IMPACT — what happens when you sell</div>';
   html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:16px">';
   (pa.priceImpact||[]).forEach(p=>{
     const imp=parseFloat(p.impact||0);
-    const col=imp>10?'var(--red)':imp>5?'var(--amber)':'var(--green)';
+    const col=imp>10?'var(--red)':imp>3?'var(--amber)':'var(--green)';
     html+='<div style="background:var(--bg3);padding:10px 12px;text-align:center">';
     html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:4px">'+safe(p.label)+' SELL</div>';
-    html+='<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+col+'">'+imp.toFixed(1)+'%</div>';
+    html+='<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+col+'">'+(imp<0.1?'<0.1':imp.toFixed(1))+'%</div>';
     html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:2px">price drop</div>';
     html+='</div>';
   });
   html+='</div>';
  
-  // multi-pair trap flags
+  // ── EXIT TIME ESTIMATOR ─────────────────────────────────────
+  if(pa.exitTimes&&pa.exitTimes.length>0){
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:10px">EXIT TIME ESTIMATOR — hours to exit with under 5% slippage</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-bottom:16px">';
+    pa.exitTimes.forEach(e=>{
+      const h=e.hours;
+      const col=h===null?'var(--ink3)':h==='>720'?'var(--red)':parseFloat(h)>24?'var(--red)':parseFloat(h)>4?'var(--amber)':'var(--green)';
+      html+='<div style="background:var(--bg3);padding:10px 12px;text-align:center">';
+      html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:4px">$'+safe(String(e.posSize>=1000?(e.posSize/1000)+'K':e.posSize))+' POSITION</div>';
+      html+='<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+col+'">'+(h===null?'—':safe(String(h)))+'h</div>';
+      html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:2px">to exit clean</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+ 
+  // ── MULTI-PAIR TRAP ─────────────────────────────────────────
   if(pa.multiPairFlags&&pa.multiPairFlags.length>0){
     html+='<div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.08em;margin-bottom:8px">MULTI-PAIR TRAP SIGNALS</div>';
     pa.multiPairFlags.forEach(f=>{
@@ -705,19 +764,13 @@ function renderPairAnalysis(pa){
     html+='<div style="margin-bottom:14px"></div>';
   }
  
-  // liquidity per pair breakdown
+  // ── LIQUIDITY PER PAIR ──────────────────────────────────────
   html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:8px">LIQUIDITY PER TRADING PAIR ('+safe(String(pa.totalPairs||0))+' total pairs)</div>';
   html+='<table class="holders-table"><thead><tr><th>DEX</th><th>CHAIN</th><th>LIQUIDITY</th><th>24H VOL</th><th>% OF TOTAL</th></tr></thead><tbody>';
-  (pa.pairBreakdown||[]).forEach((p,i)=>{
+  (pa.pairBreakdown||[]).forEach(p=>{
     const pct=parseFloat(p.pct||0);
     const barClass=pct>80?'pct-fill-danger':'pct-fill';
-    html+='<tr>';
-    html+='<td style="text-transform:uppercase">'+safe(p.dex||'—')+'</td>';
-    html+='<td style="text-transform:uppercase">'+safe(p.chain||'—')+'</td>';
-    html+='<td>'+safe(fmtNum(p.liq))+'</td>';
-    html+='<td>'+safe(fmtNum(p.vol24h))+'</td>';
-    html+='<td><div class="pct-bar"><div class="'+barClass+'" style="width:'+Math.min(100,pct)+'px"></div><span>'+safe(p.pct)+'%</span></div></td>';
-    html+='</tr>';
+    html+='<tr><td style="text-transform:uppercase">'+safe(p.dex||'—')+'</td><td style="text-transform:uppercase">'+safe(p.chain||'—')+'</td><td>'+safe(fmtNum(p.liq))+'</td><td>'+safe(fmtNum(p.vol24h))+'</td><td><div class="pct-bar"><div class="'+barClass+'" style="width:'+Math.min(100,pct)+'px"></div><span>'+safe(p.pct)+'%</span></div></td></tr>';
   });
   html+='</tbody></table>';
  
@@ -732,9 +785,9 @@ function renderOnchainPanel(oc){
   }
   const isSol=oc.chain==='solana';
   const conc=parseFloat(oc.top10concentration||0);
-  const concClass=conc>80?'conc-danger':conc>50?'conc-warn':'conc-ok';
-  const concLabel=conc>80?'EXTREME CONCENTRATION — top 10 hold '+conc+'%':conc>50?'HIGH CONCENTRATION — top 10 hold '+conc+'%':'HEALTHY — top 10 hold '+conc+'%';
-  let html='<div class="conc-badge '+concClass+'">TOP 10 HOLDER CONCENTRATION: '+conc+'%</div>';
+  const isNA=oc.top10concentration==='N/A'||isNaN(conc);
+  const concClass=isNA?'conc-warn':conc>80?'conc-danger':conc>50?'conc-warn':'conc-ok';
+  let html='<div class="conc-badge '+concClass+'">'+(isNA?'HOLDER DATA: ETHERSCAN PRO REQUIRED':'TOP 10 HOLDER CONCENTRATION: '+conc+'%')+'</div>';
  
   if(isSol){
     html+='<div class="sol-flags">';
@@ -868,7 +921,10 @@ async function rugCheck(){
     }
     if(pairAnalysis){
       onchainContext+='PRICE IMPACT: $1K sell moves price '+pairAnalysis.priceImpact?.[0]?.impact?.toFixed(1)+'%, $10K sell moves '+pairAnalysis.priceImpact?.[2]?.impact?.toFixed(1)+'%. ';
+      if(pairAnalysis.buySellFlags?.length>0)onchainContext+='BUY/SELL FLAGS: '+pairAnalysis.buySellFlags.join(' | ')+'. ';
+      if(pairAnalysis.liqAgeFlags?.length>0)onchainContext+='LIQUIDITY AGE FLAGS: '+pairAnalysis.liqAgeFlags.join(' | ')+'. ';
       if(pairAnalysis.multiPairFlags?.length>0)onchainContext+='MULTI-PAIR FLAGS: '+pairAnalysis.multiPairFlags.join(' | ')+'. ';
+      if(pairAnalysis.buyPct1h!==null)onchainContext+='1H BUY PRESSURE: '+pairAnalysis.buyPct1h+'% ('+pairAnalysis.totalBuys1h+' buys vs '+pairAnalysis.totalSells1h+' sells). ';
     }
  
     document.getElementById('rug-msg').textContent=MSGS_RUG[4];
