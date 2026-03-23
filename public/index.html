@@ -507,8 +507,7 @@ function renderNarratives(data){
     const fs=Math.min(10,Math.max(0,parseInt(n.fundamentals_score)%11));
     const el=document.createElement('div');el.className='ncard';el.style.animationDelay=(i*0.07)+'s';el.dataset.i=i;
     // token chips for narrative mapper
-    const chips=getTokensForNarrative(n.name,n.summary);
-    const chipsHtml=chips.length>0?'<div class="token-chips">'+chips.map(c=>'<div class="token-chip" onclick="copyAndAnalyse(\''+c.ca+'\')">'+safe(c.name)+'</div>').join('')+'</div>':'';
+    const chipsHtml='<div class="token-chips" id="chips-'+i+'"><span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">loading tokens...</span></div>';
     el.innerHTML='<div class="ncard-main" onclick="toggleN('+i+')">'
       +'<div class="ncard-num">'+String(i+1).padStart(2,'0')+'</div>'
       +'<div class="ncard-body">'
@@ -526,33 +525,54 @@ function renderNarratives(data){
       +'<div><div class="dblock-lbl">VERDICT</div><div class="dblock-txt">'+safe(n.verdict)+'</div></div>'
       +'</div></div>';
     list.appendChild(el);
+    loadTokenChips(n, el);
   });
   document.getElementById('n-results').style.display='block';
 }
  
 // ── NARRATIVE TOKEN MAPPER ────────────────────────────────────
-const NARRATIVE_TOKENS={
-  'virtuals':[{name:'VIRTUAL',ca:'0x44ff8620b8cA30902395A7bD3F2407e1A091BF73'},{name:'AGENT',ca:'0x0f3D8a38D4C74afBebc2c42695642f0e3acb15D3'}],
-  'ai16z':[{name:'AI16Z',ca:'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'}],
-  'elizaos':[{name:'ELIZA',ca:'5voS9evDjxF589WuEub5i4ti7FWQmZCsAsyD5ucbuRqM'}],
-  'aixbt':[{name:'AIXBT',ca:'0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825'}],
-  'pepe':[{name:'PEPE',ca:'0x6982508145454Ce325dDbE47a25d4ec3d2311933'}],
-  'bonk':[{name:'BONK',ca:'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'}],
-  'wif':[{name:'WIF',ca:'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'}],
-  'brett':[{name:'BRETT',ca:'0x532f27101965dd16442E59d40670FaF5eBB142E4'}],
-  'mog':[{name:'MOG',ca:'0xaaeE1A9723aaDB7afA2810263653A34bA2C21C7a'}],
-  'popcat':[{name:'POPCAT',ca:'7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr'}],
-};
- 
-function getTokensForNarrative(name,summary){
-  const text=(name+' '+summary).toLowerCase();
-  const results=[];
-  for(const [key,tokens] of Object.entries(NARRATIVE_TOKENS)){
-    if(text.includes(key))results.push(...tokens);
-  }
-  return results.slice(0,4);
+const narrativeTokenCache={};
+
+async function searchTokenForNarrative(keyword){
+  if(narrativeTokenCache[keyword])return narrativeTokenCache[keyword];
+  try{
+    const r=await fetch('https://api.dexscreener.com/latest/dex/search?q='+encodeURIComponent(keyword));
+    const d=await r.json();
+    if(!d.pairs||d.pairs.length===0)return null;
+    // filter to pairs where the base token symbol or name closely matches keyword
+    const filtered=d.pairs.filter(p=>{
+      const sym=(p.baseToken?.symbol||'').toLowerCase();
+      const nm=(p.baseToken?.name||'').toLowerCase();
+      const kw=keyword.toLowerCase();
+      return sym===kw||nm===kw||sym.startsWith(kw)||nm.startsWith(kw);
+    });
+    const pool=filtered.length>0?filtered:d.pairs;
+    // pick highest liquidity
+    const best=pool.sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0];
+    const result={name:'$'+(best.baseToken?.symbol||keyword),ca:best.baseToken?.address||'',chain:best.chainId||'',liq:best.liquidity?.usd||0};
+    narrativeTokenCache[keyword]=result;
+    return result;
+  }catch{return null;}
 }
- 
+
+function extractKeywords(name,summary){
+  // pull out project names from narrative name and summary
+  const known=['Virtuals','ai16z','ElizaOS','AIXBT','Zerebro','Arc','Griffain','Fartcoin','Goat','Meme','Bonk','WIF','Pepe','Brett','Mog','Popcat','Render','Akash','io.net','Bittensor','Grass','Nosana'];
+  const text=name+' '+summary;
+  return known.filter(k=>text.toLowerCase().includes(k.toLowerCase())).slice(0,3);
+}
+
+async function loadTokenChips(narrative,cardEl){
+  const keywords=extractKeywords(narrative.name,narrative.summary);
+  if(keywords.length===0)return;
+  const results=await Promise.all(keywords.map(k=>searchTokenForNarrative(k)));
+  const valid=results.filter(r=>r&&r.ca);
+  if(valid.length===0)return;
+  const chipsDiv=cardEl.querySelector('.token-chips');
+  if(!chipsDiv)return;
+  chipsDiv.innerHTML=valid.map(t=>'<div class="token-chip" onclick="copyAndAnalyse(\''+safe(t.ca)+'\')">'+safe(t.name)+'<span style="font-family:var(--mono);font-size:8px;color:var(--ink3);margin-left:4px">'+safe(t.chain.toUpperCase())+'</span></div>').join('');
+}
+
 function copyAndAnalyse(ca){
   switchTab('ca');
   document.getElementById('ca-input').value=ca;
