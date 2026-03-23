@@ -91,23 +91,64 @@ async function etherscanFetch(chainNumericId, params) {
  
 async function getEthOnchainData(contractAddress, chainId) {
   const chainNumericId = getChainId(chainId);
-if (!chainNumericId) return null;
-const base = chainNumericId;
+  if (!chainNumericId) return null;
   try {
-    const [transfers, contractInfo, creationTx] = await Promise.all([
-      etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 50, sort: 'desc' }),
-      etherscanFetch(base, { module: 'contract', action: 'getsourcecode', address: contractAddress }),
-      etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 1, sort: 'asc' }),
+    // get contract creation info — works on free tier
+    const [contractInfo, txList] = await Promise.all([
+      etherscanFetch(chainNumericId, {
+        module: 'contract', action: 'getsourcecode', address: contractAddress
+      }),
+      etherscanFetch(chainNumericId, {
+        module: 'account', action: 'txlist', address: contractAddress,
+        page: 1, offset: 10, sort: 'asc'
+      }),
     ]);
 
-    const deployer = creationTx?.[0]?.from || null;
+    // deployer is whoever sent the first tx to this contract
+    const deployer = txList?.[0]?.from || null;
 
-    let deployerHistory = null;
+    // get deployer's token deployments to check for serial rugger
+    let deployerOtherTokens = 0;
     if (deployer) {
-      deployerHistory = await etherscanFetch(base, {
-        module: 'account', action: 'tokentx', address: deployer, page: 1, offset: 50, sort: 'desc'
+      const deployerTxs = await etherscanFetch(chainNumericId, {
+        module: 'account', action: 'txlist', address: deployer,
+        page: 1, offset: 50, sort: 'desc'
       });
+      // count unique contracts deployed by this wallet
+      deployerOtherTokens = (deployerTxs || [])
+        .filter(tx => tx.to === '' || tx.to === null)
+        .length;
     }
+
+    // get recent normal txs to the contract for activity
+    const recentTxs = await etherscanFetch(chainNumericId, {
+      module: 'account', action: 'txlist', address: contractAddress,
+      page: 1, offset: 10, sort: 'desc'
+    });
+
+    const recentTransfers = (recentTxs || []).slice(0, 8).map(tx => ({
+      from: (tx.from || '').slice(0, 8) + '...',
+      to: (tx.to || '').slice(0, 8) + '...',
+      value: parseFloat(tx.value || 0) / 1e18,
+      time: tx.timeStamp ? new Date(parseInt(tx.timeStamp) * 1000).toISOString().slice(0, 16).replace('T', ' ') : '—',
+    }));
+
+    const isVerified = !!(contractInfo?.[0]?.SourceCode && contractInfo[0].SourceCode !== '');
+
+    return {
+      chain: chainId,
+      deployer: deployer ? deployer.slice(0, 10) + '...' : 'unknown',
+      deployerFull: deployer,
+      top10holders: [],
+      top10concentration: 'N/A',
+      top10note: 'holder data requires Etherscan Pro — upgrade at etherscan.io',
+      recentTransfers,
+      deployerOtherTokens,
+      isVerified,
+      serialRuggerSignal: deployerOtherTokens > 5
+    };
+  } catch (e) { return null; }
+}
 
     // infer holder concentration from recent transfers
     const holderMap = {};
