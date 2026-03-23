@@ -218,7 +218,27 @@ const RUG_HALL_OF_FAME = [
 ];
  
 // ── API ROUTES ────────────────────────────────────────────────
+app.post('/api/analyse', rateLimit, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt || typeof prompt !== 'string') return res.status(400).json({ error: 'missing prompt' });
+  if (prompt.length > 4000) return res.status(400).json({ error: 'prompt too long' });
+  try {
+    const data = await callClaude({ model: HAIKU, max_tokens: 800, messages: [{ role: 'user', content: prompt }] });
+    const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    res.json({ text: txt });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
+app.post('/api/investigate', rateLimit, async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt || typeof prompt !== 'string') return res.status(400).json({ error: 'missing prompt' });
+  if (prompt.length > 6000) return res.status(400).json({ error: 'prompt too long' });
+  try {
+    const data = await callClaude({ model: HAIKU, max_tokens: 1500, temperature: 0, messages: [{ role: 'user', content: prompt }] });
+    const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    res.json({ text: txt });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
  
 app.get('/api/rugfame', rateLimit, (req, res) => {
   res.json({ rugs: RUG_HALL_OF_FAME });
