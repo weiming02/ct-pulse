@@ -838,7 +838,7 @@ async function rugCheck(){
         +' LAST 10 x 4H CLOSES: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')
         +' Return JSON: {"threat_score":0,"mode":"livecheck","verdict_title":"5-7 word specific verdict","verdict_summary":"2 sentences citing exact numbers","flags":[{"severity":"red or amber or green","title":"flag","detail":"exact data"}],"price_forensics":"price action analysis for manipulation signals","liquidity_forensics":"liquidity health in context of cap tier","volume_forensics":"organic vs manipulated volume assessment","wallet_forensics":"what the on-chain wallet data reveals","structural_risk":"structural vulnerabilities","timeline":[{"event":"title","detail":"what the data shows","severity":"red or amber or green"}],"investigator_verdict":"3-sentence ZachXBT-style threat assessment"}';
  
-    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,messages:[{role:'user',content:zachPrompt}]})});
+    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,temperature:0,messages:[{role:'user',content:zachPrompt}]})});
     const zachData=await zachRes.json();
     if(!zachRes.ok)throw new Error(zachData.error?.message||'API error');
     const zachTxt=zachData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
