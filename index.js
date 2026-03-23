@@ -264,9 +264,13 @@ function analysePairs(pairs) {
   const buySellFlags = [];
   if (buyPct1h !== null) {
     const bp = parseInt(buyPct1h);
-    if (bp >= 90 && totalTxns1h > 20) buySellFlags.push('1H buy ratio is ' + bp + '% (' + totalBuys1h + ' buys vs ' + totalSells1h + ' sells) — coordinated bot buying pattern, likely artificial price support before dump');
-    else if (bp >= 80 && totalTxns1h > 10) buySellFlags.push('1H buy ratio is ' + bp + '% — unusually high, possible coordinated accumulation or wash trading');
-    else if (bp <= 20 && totalTxns1h > 20) buySellFlags.push('1H sell ratio is ' + (100 - bp) + '% (' + totalSells1h + ' sells vs ' + totalBuys1h + ' buys) — coordinated exit in progress');
+    const bp24 = parseInt(buyPct24h || 50);
+    // only flag if BOTH 1h and 24h are extreme AND volume is high enough to be meaningful
+    if (bp >= 95 && bp24 >= 90 && totalTxns1h > 30 && totalTxns24h > 200) {
+      buySellFlags.push('1H buy ratio ' + bp + '% AND 24H buy ratio ' + bp24 + '% — sustained extreme buy dominance across both timeframes with ' + totalTxns24h + ' total transactions. this level of one-sided pressure with high volume is consistent with coordinated bot activity');
+    } else if (bp <= 10 && bp24 <= 20 && totalTxns1h > 20) {
+      buySellFlags.push('1H sell ratio ' + (100-bp) + '% AND 24H sell ratio ' + (100-bp24) + '% — overwhelming sell pressure sustained across both timeframes (' + totalSells24h + ' sells vs ' + totalBuys24h + ' buys). coordinated exit pattern');
+    }
   }
  
   // ── LIQUIDITY AGE WARNING ─────────────────────────────────────
@@ -292,21 +296,13 @@ function analysePairs(pairs) {
   }
  
   // ── EXIT TIME ESTIMATOR ───────────────────────────────────────
-  const vol24h = pairs.reduce((s, p) => s + (p.volume?.h24 || 0), 0);
-  const hourlyVol = vol24h / 24;
-  const exitTimes = [5000, 10000, 50000].map(posSize => {
-    // to exit with under 5% slippage, can only sell ~5% of hourly volume per hour
-    const safeHourlySell = hourlyVol * 0.05;
-    if (safeHourlySell <= 0) return { posSize, hours: null };
-    const hours = posSize / safeHourlySell;
-    return { posSize, hours: hours < 1 ? '<1' : hours > 720 ? '>720' : hours.toFixed(0) };
-  });
+  
  
   return {
     priceImpact, pairBreakdown, multiPairFlags, topPairPct,
     totalPairs: pairs.length, totalLiq,
     buyPct1h, buyPct24h, totalBuys1h, totalSells1h, totalBuys24h, totalSells24h,
-    buySellFlags, liqAgeFlags, exitTimes
+    buySellFlags, liqAgeFlags
   };
 }
  
