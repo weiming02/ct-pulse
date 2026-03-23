@@ -218,13 +218,7 @@ const RUG_HALL_OF_FAME = [
 ];
  
 // ── API ROUTES ────────────────────────────────────────────────
-app.get('/api/key', rateLimit, (req, res) => {
-  const origin = req.headers.referer || req.headers.origin || '';
-  if (!origin.includes('ct-pulse.vercel.app') && !origin.includes('localhost')) {
-    return res.status(403).json({ error: 'forbidden' });
-  }
-  res.json({ key: ANTHROPIC_API_KEY });
-});
+
  
 app.get('/api/rugfame', rateLimit, (req, res) => {
   res.json({ rugs: RUG_HALL_OF_FAME });
