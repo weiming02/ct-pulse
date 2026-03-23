@@ -9,31 +9,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;
-  --ink:#f0ede6;--ink2:#a0a090;--ink3:#585850;
-  --accent:#39ff6a;--accent2:#2dd458;
-  --red:#ff4444;--red-bg:rgba(255,68,68,0.1);
-  --green:#39ff6a;--green-bg:rgba(57,255,106,0.1);
-  --amber:#ffaa00;--amber-bg:rgba(255,170,0,0.1);
-  --border:rgba(240,237,230,0.08);--border-strong:rgba(240,237,230,0.15);
-  --mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;
-}
-body.light{
-  --bg:#f5f3ee;--bg2:#eceae3;--bg3:#e2e0d8;
-  --ink:#1a1a18;--ink2:#5a5a52;--ink3:#9a9a8e;
-  --accent:#1a8a3a;--accent2:#157030;
-  --red:#cc2222;--red-bg:rgba(204,34,34,0.08);
-  --green:#1a8a3a;--green-bg:rgba(26,138,58,0.1);
-  --amber:#8a6000;--amber-bg:rgba(138,96,0,0.1);
-  --border:rgba(26,26,24,0.1);--border-strong:rgba(26,26,24,0.2);
-}
+:root{--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--ink:#f0ede6;--ink2:#a0a090;--ink3:#585850;--accent:#39ff6a;--accent2:#2dd458;--red:#ff4444;--red-bg:rgba(255,68,68,0.1);--green:#39ff6a;--green-bg:rgba(57,255,106,0.1);--amber:#ffaa00;--amber-bg:rgba(255,170,0,0.1);--border:rgba(240,237,230,0.08);--border-strong:rgba(240,237,230,0.15);--mono:'JetBrains Mono',monospace;--sans:'Syne',sans-serif;}
+body.light{--bg:#f5f3ee;--bg2:#eceae3;--bg3:#e2e0d8;--ink:#1a1a18;--ink2:#5a5a52;--ink3:#9a9a8e;--accent:#1a8a3a;--accent2:#157030;--red:#cc2222;--red-bg:rgba(204,34,34,0.08);--green:#1a8a3a;--green-bg:rgba(26,138,58,0.1);--amber:#8a6000;--amber-bg:rgba(138,96,0,0.1);--border:rgba(26,26,24,0.1);--border-strong:rgba(26,26,24,0.2);}
 .theme-btn{background:transparent;border:1px solid var(--border-strong);cursor:pointer;padding:6px 8px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;color:var(--ink3);border-radius:0}
 .theme-btn:hover{border-color:var(--accent);color:var(--accent)}
 .theme-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:all 0.2s}
 .bulb-on{display:none}.bulb-off{display:block}
-body.light .bulb-on{display:block}
-body.light .bulb-off{display:none}
+body.light .bulb-on{display:block}body.light .bulb-off{display:none}
 body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;line-height:1.5}
 .wrap{max-width:900px;margin:0 auto;padding:0 20px}
 header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-bottom:32px}
@@ -46,8 +28,8 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .live-dot{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--ink3)}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.tabs{display:flex;border:1px solid var(--border-strong);margin-bottom:28px}
-.tab{flex:1;font-family:var(--mono);font-size:11px;letter-spacing:0.04em;padding:12px 8px;border:none;background:transparent;color:var(--ink3);cursor:pointer;transition:all 0.15s;border-right:1px solid var(--border-strong)}
+.tabs{display:flex;border:1px solid var(--border-strong);margin-bottom:28px;flex-wrap:wrap}
+.tab{flex:1;font-family:var(--mono);font-size:10px;letter-spacing:0.03em;padding:12px 6px;border:none;background:transparent;color:var(--ink3);cursor:pointer;transition:all 0.15s;border-right:1px solid var(--border-strong);white-space:nowrap;min-width:0}
 .tab:last-child{border-right:none}
 .tab.active{background:var(--accent);color:#000;font-weight:500}
 .tab:hover:not(.active){color:var(--ink);background:var(--bg3)}
@@ -84,8 +66,7 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .bar-lbl{font-family:var(--mono);font-size:10px;color:var(--ink3);width:76px;flex-shrink:0}
 .bar-track{flex:1;height:3px;background:var(--bg3)}
 .bar-fill{height:100%;transition:width 1s ease}
-.bf-hype{background:var(--red)}
-.bf-fund{background:var(--accent)}
+.bf-hype{background:var(--red)}.bf-fund{background:var(--accent)}
 .bar-num{font-family:var(--mono);font-size:10px;color:var(--ink3);width:22px;text-align:right}
 .chatter{display:flex;align-items:center;gap:7px;margin-top:8px}
 .chatter-lbl{font-family:var(--mono);font-size:10px;color:var(--ink3)}
@@ -100,6 +81,9 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .dblock-lbl{font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:5px}
 .dblock-txt{font-size:13px;color:var(--ink2);line-height:1.6}
+.token-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.token-chip{font-family:var(--mono);font-size:10px;padding:3px 10px;background:var(--bg2);border:1px solid var(--border-strong);color:var(--ink2);cursor:pointer;transition:all 0.15s}
+.token-chip:hover{border-color:var(--accent);color:var(--accent)}
 .ca-input-row{display:flex;margin-bottom:8px;border:1px solid var(--border-strong);background:var(--bg2)}
 .ca-input-row:focus-within{border-color:var(--accent)}
 .ca-input-row input{flex:1;background:transparent;border:none;font-family:var(--mono);font-size:13px;padding:14px 16px;outline:none;color:var(--ink)}
@@ -171,6 +155,24 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .empty{padding:48px 0;text-align:center}
 .empty p{font-family:var(--mono);font-size:12px;color:var(--ink3);margin-bottom:5px}
 .err{color:var(--red)}
+/* COMPARE */
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:2px}
+.cmp-side{background:var(--bg2);border:1px solid var(--border-strong);padding:16px}
+.cmp-side-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.1em;margin-bottom:10px}
+.cmp-vs{display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border-strong);border-top:none;padding:10px;font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:0.1em;margin-bottom:2px}
+.cmp-result{display:none;background:var(--bg2);border:1px solid var(--border-strong);border-top:none;padding:20px}
+.cmp-result.on{display:block}
+.cmp-row{display:grid;grid-template-columns:1fr 80px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.cmp-row:last-child{border-bottom:none}
+.cmp-metric{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;text-align:center}
+.cmp-val-a{font-family:var(--mono);font-size:12px;text-align:right}
+.cmp-val-b{font-family:var(--mono);font-size:12px;text-align:left}
+.cmp-win{color:var(--green);font-weight:700}
+.cmp-lose{color:var(--red)}
+.cmp-neutral{color:var(--ink2)}
+.cmp-verdict{background:var(--bg3);padding:14px;margin-top:14px}
+.cmp-verdict-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:8px}
+.cmp-verdict-txt{font-size:13px;color:var(--ink2);line-height:1.7}
 /* INVESTIGATE */
 .rug-score-wrap{display:none;margin-bottom:2px}
 .rug-score-wrap.on{display:block}
@@ -254,13 +256,42 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .verdict-strip-guilty{background:var(--red);color:#fff}
 .verdict-strip-lbl{font-family:var(--mono);font-size:10px;opacity:0.6;letter-spacing:0.08em;margin-bottom:5px}
 .verdict-strip-txt{font-size:14px;font-weight:800;line-height:1.5}
+/* RUG HALL OF FAME */
+.rug-card{background:var(--bg2);border:1px solid var(--border);margin-bottom:2px;overflow:hidden;animation:up 0.35s ease both}
+.rug-card-header{display:flex;align-items:stretch;cursor:pointer;transition:border-color 0.15s}
+.rug-card-header:hover{background:var(--bg3)}
+.rug-card-skull{font-size:20px;display:flex;align-items:center;justify-content:center;padding:16px 18px;border-right:1px solid var(--border)}
+.rug-card-info{flex:1;padding:16px 18px}
+.rug-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.rug-card-name{font-size:16px;font-weight:800;letter-spacing:-0.01em}
+.rug-card-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rug-tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border:1px solid}
+.rug-tag-year{color:var(--ink3);border-color:var(--border-strong)}
+.rug-tag-chain{color:var(--ink3);border-color:var(--border-strong)}
+.rug-tag-loss{color:var(--red);border-color:rgba(255,68,68,0.4);background:var(--red-bg)}
+.rug-card-cause{font-size:13px;color:var(--ink2);margin-bottom:4px}
+.rug-card-peak{font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.rug-card-arrow{display:flex;align-items:center;padding:0 16px;color:var(--ink3);font-size:16px;border-left:1px solid var(--border)}
+.rug-card.expanded .rug-card-arrow{color:var(--accent)}
+.rug-card-body{display:none;border-top:1px solid var(--border);background:var(--bg3)}
+.rug-card.expanded .rug-card-body{display:block}
+.rug-body-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.rug-body-section{padding:16px 18px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.rug-body-section:nth-child(even){border-right:none}
+.rug-body-section:last-child,.rug-body-section:nth-last-child(2):nth-child(odd){border-bottom:none}
+.rug-body-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.1em;margin-bottom:8px}
+.rug-body-txt{font-size:13px;color:var(--ink2);line-height:1.6}
+.rug-lesson{background:rgba(57,255,106,0.06);border:1px solid rgba(57,255,106,0.15);padding:14px 18px;margin:0}
+.rug-lesson-lbl{font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:0.1em;margin-bottom:6px}
+.rug-lesson-txt{font-size:13px;color:var(--ink2);line-height:1.6}
 footer{padding:24px 0 40px;border-top:1px solid var(--border);margin-top:48px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
 @media(max-width:600px){
-  .analysis-grid,.detail-grid{grid-template-columns:1fr}
+  .analysis-grid,.detail-grid,.cmp-grid,.rug-body-grid{grid-template-columns:1fr}
   .ncard-detail{padding-left:18px}
   .token-stats,.metrics-grid{grid-template-columns:repeat(2,1fr)}
   .rug-score-header{flex-direction:column;align-items:flex-start}
+  .cmp-row{grid-template-columns:1fr 60px 1fr}
 }
 </style>
 </head>
@@ -283,14 +314,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
 <div class="tabs">
   <button class="tab active" id="tab-n" onclick="switchTab('n')">narratives</button>
   <button class="tab" id="tab-ca" onclick="switchTab('ca')">chart analysis</button>
+  <button class="tab" id="tab-cmp" onclick="switchTab('cmp')">compare</button>
   <button class="tab" id="tab-rug" onclick="switchTab('rug')">investigate</button>
+  <button class="tab" id="tab-hof" onclick="switchTab('hof')">rug hall of fame</button>
 </div>
  
 <!-- NARRATIVES -->
 <div id="pane-n">
-  <button class="big-btn" id="narrative-btn" onclick="loadNarratives()">
-    <div class="btn-pulse" id="btn-pulse"></div>scan today's crypto narratives
-  </button>
+  <button class="big-btn" id="narrative-btn" onclick="loadNarratives()"><div class="btn-pulse" id="btn-pulse"></div>scan today's crypto narratives</button>
   <div class="loading" id="n-loading"><div class="ldots"><span></span><span></span><span></span></div><p id="n-msg">scanning...</p></div>
   <div id="n-results" style="display:none"><div class="sl">top narratives right now</div><div class="nlist" id="nlist"></div></div>
   <div class="empty" id="n-empty"><p>hit the button to scan today's crypto narratives.</p><p>powered by claude + upstash cache.</p></div>
@@ -299,18 +330,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
 <!-- CHART ANALYSIS -->
 <div id="pane-ca" style="display:none">
   <div class="sl">paste contract address</div>
-  <div class="ca-input-row">
-    <input type="text" id="ca-input" placeholder="paste any CA — Solana, ETH, Base, BSC, Arbitrum..." onkeydown="if(event.key==='Enter')analyseCA()">
-    <button class="ca-btn" id="ca-btn" onclick="analyseCA()">analyse →</button>
-  </div>
+  <div class="ca-input-row"><input type="text" id="ca-input" placeholder="paste any CA — Solana, ETH, Base, BSC, Arbitrum..." onkeydown="if(event.key==='Enter')analyseCA()"><button class="ca-btn" id="ca-btn" onclick="analyseCA()">analyse →</button></div>
   <div class="ca-note">supports all major chains · live data from DEXScreener · AI identifies formations + entry zones</div>
   <div class="loading" id="ca-loading"><div class="ldots"><span></span><span></span><span></span></div><p id="ca-msg">fetching token data...</p></div>
   <div class="token-strip" id="token-strip">
-    <div class="token-name-row">
-      <span class="token-name" id="t-name"></span>
-      <span class="token-ticker" id="t-ticker"></span>
-      <span class="token-chain" id="t-chain"></span>
-    </div>
+    <div class="token-name-row"><span class="token-name" id="t-name"></span><span class="token-ticker" id="t-ticker"></span><span class="token-chain" id="t-chain"></span></div>
     <div class="token-stats">
       <div class="tstat"><div class="tstat-lbl">PRICE</div><div class="tstat-val" id="t-price"></div></div>
       <div class="tstat"><div class="tstat-lbl">24H CHANGE</div><div class="tstat-val" id="t-change"></div></div>
@@ -321,10 +345,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     </div>
   </div>
   <div class="chart-section" id="chart-section">
-    <div class="chart-tabs">
-      <button class="chart-tab active" onclick="switchChart('1h',this)">1H — 50 candles</button>
-      <button class="chart-tab" onclick="switchChart('4h',this)">4H — 50 candles</button>
-    </div>
+    <div class="chart-tabs"><button class="chart-tab active" onclick="switchChart('1h',this)">1H — 50 candles</button><button class="chart-tab" onclick="switchChart('4h',this)">4H — 50 candles</button></div>
     <div class="chart-pane active" id="chart-1h">
       <div class="chart-header"><span class="chart-title">1H CHART · price action · entry zone</span><span class="chart-badge">macro structure from 4H used by AI</span></div>
       <div class="chart-canvas-wrap"><canvas id="chart-canvas-1h"></canvas></div>
@@ -339,85 +360,60 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
     </div>
   </div>
   <div class="analysis-card" id="analysis-card">
-    <div class="analysis-header">
-      <span style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.08em">FORMATION DETECTED</span>
-      <span class="formation-badge" id="formation-badge">—</span>
-      <span class="formation-badge" id="bias-badge">—</span>
-    </div>
+    <div class="analysis-header"><span style="font-family:var(--mono);font-size:10px;color:var(--ink3);letter-spacing:0.08em">FORMATION DETECTED</span><span class="formation-badge" id="formation-badge">—</span><span class="formation-badge" id="bias-badge">—</span></div>
     <div class="analysis-grid">
       <div class="ablock"><div class="ablock-lbl">WHAT THE CHART IS DOING</div><div class="ablock-txt" id="a-pattern"></div></div>
       <div class="ablock"><div class="ablock-lbl">MOMENTUM READING</div><div class="ablock-txt" id="a-momentum"></div></div>
       <div class="ablock"><div class="ablock-lbl">KEY LEVELS (1H + 4H)</div><div class="ablock-txt" id="a-levels"></div></div>
       <div class="ablock"><div class="ablock-lbl">VOLUME STORY</div><div class="ablock-txt" id="a-volume"></div></div>
     </div>
-    <div class="entry-zones">
-      <div class="ez-lbl">SUGGESTED ENTRY ZONES — based on 1H timing + 4H structure</div>
-      <div id="ez-list"></div>
-    </div>
+    <div class="entry-zones"><div class="ez-lbl">SUGGESTED ENTRY ZONES — based on 1H timing + 4H structure</div><div id="ez-list"></div></div>
     <div class="invalidation"><div class="inv-lbl">INVALIDATION — if price closes below this, thesis is dead</div><div class="inv-txt" id="a-inv"></div></div>
     <div class="ai-verdict"><div class="avs-lbl">AI VERDICT</div><div class="avs-txt" id="a-verdict"></div></div>
   </div>
   <div class="empty" id="ca-empty"><p>paste a contract address above to get live chart analysis.</p><p>AI reads candles on 1H + 4H and identifies formations + entry zones.</p></div>
 </div>
  
+<!-- COMPARE -->
+<div id="pane-cmp" style="display:none">
+  <div class="sl">compare two tokens side by side</div>
+  <div class="cmp-grid">
+    <div class="cmp-side"><div class="cmp-side-lbl">TOKEN A</div><div class="ca-input-row" style="margin-bottom:0"><input type="text" id="cmp-a-input" placeholder="paste CA for token A..." onkeydown="if(event.key==='Enter')compareTokens()"></div></div>
+    <div class="cmp-side"><div class="cmp-side-lbl">TOKEN B</div><div class="ca-input-row" style="margin-bottom:0"><input type="text" id="cmp-b-input" placeholder="paste CA for token B..." onkeydown="if(event.key==='Enter')compareTokens()"></div></div>
+  </div>
+  <div class="cmp-vs"><button class="ca-btn" id="cmp-btn" onclick="compareTokens()" style="padding:10px 32px;font-size:12px">compare →</button></div>
+  <div class="loading" id="cmp-loading"><div class="ldots"><span></span><span></span><span></span></div><p id="cmp-msg">fetching both tokens...</p></div>
+  <div class="cmp-result" id="cmp-result">
+    <div id="cmp-table"></div>
+    <div class="cmp-verdict"><div class="cmp-verdict-lbl">AI COMPARISON VERDICT</div><div class="cmp-verdict-txt" id="cmp-verdict-txt">—</div></div>
+  </div>
+  <div class="empty" id="cmp-empty"><p>paste two contract addresses above to compare them.</p><p>side by side metrics + AI verdict on which is the better play.</p></div>
+</div>
+ 
 <!-- INVESTIGATE -->
 <div id="pane-rug" style="display:none">
   <div class="sl">on-chain investigation</div>
-  <div class="ca-input-row">
-    <input type="text" id="rug-input" placeholder="paste any CA — live token or suspected rug" onkeydown="if(event.key==='Enter')rugCheck()">
-    <button class="ca-btn" id="rug-btn" onclick="rugCheck()">investigate →</button>
-  </div>
+  <div class="ca-input-row"><input type="text" id="rug-input" placeholder="paste any CA — live token or suspected rug" onkeydown="if(event.key==='Enter')rugCheck()"><button class="ca-btn" id="rug-btn" onclick="rugCheck()">investigate →</button></div>
   <div class="ca-note">ZachXBT-style forensics · real on-chain wallet data · holder concentration · deployer history · Etherscan + Solscan</div>
   <div class="loading" id="rug-loading"><div class="ldots"><span></span><span></span><span></span></div><p id="rug-msg">opening case file...</p></div>
- 
   <div class="rug-score-wrap" id="rug-score-wrap">
     <div class="rug-score-header">
-      <div class="rug-dial">
-        <div class="rug-score-num" id="rug-score-num">—</div>
-        <div class="rug-score-lbl">THREAT SCORE</div>
-      </div>
-      <div class="rug-verdict-wrap">
-        <div id="rug-mode-badge" class="rug-mode-badge mode-live">LIVE INVESTIGATION</div>
-        <div class="rug-verdict-title" id="rug-verdict-title">—</div>
-        <div class="rug-verdict-sub" id="rug-verdict-sub">—</div>
-      </div>
+      <div class="rug-dial"><div class="rug-score-num" id="rug-score-num">—</div><div class="rug-score-lbl">THREAT SCORE</div></div>
+      <div class="rug-verdict-wrap"><div id="rug-mode-badge" class="rug-mode-badge mode-live">LIVE INVESTIGATION</div><div class="rug-verdict-title" id="rug-verdict-title">—</div><div class="rug-verdict-sub" id="rug-verdict-sub">—</div></div>
     </div>
   </div>
- 
-  <div class="rug-metrics" id="rug-metrics">
-    <div class="rug-metrics-title">EVIDENCE COLLECTED</div>
-    <div class="metrics-grid" id="rug-metrics-grid"></div>
-  </div>
- 
-  <div class="onchain-panel" id="onchain-panel">
-    <div class="onchain-title" id="onchain-title">ON-CHAIN DATA</div>
-    <div id="onchain-body"></div>
-  </div>
- 
-  <div class="onchain-panel" id="pair-analysis-panel" style="display:none">
-    <div class="onchain-title">LIQUIDITY INTELLIGENCE</div>
-    <div id="pair-analysis-body"></div>
-  </div>
- 
-  <div class="rug-flags" id="rug-flags">
-    <div class="rug-flags-title">SUSPICIOUS ACTIVITY FLAGS</div>
-    <div class="flag-list" id="flag-list"></div>
-  </div>
- 
+  <div class="rug-metrics" id="rug-metrics"><div class="rug-metrics-title">EVIDENCE COLLECTED</div><div class="metrics-grid" id="rug-metrics-grid"></div></div>
+  <div class="onchain-panel" id="onchain-panel"><div class="onchain-title" id="onchain-title">ON-CHAIN DATA</div><div id="onchain-body"></div></div>
+  <div class="onchain-panel" id="pair-analysis-panel" style="display:none"><div class="onchain-title">LIQUIDITY INTELLIGENCE</div><div id="pair-analysis-body"></div></div>
+  <div class="rug-flags" id="rug-flags"><div class="rug-flags-title">SUSPICIOUS ACTIVITY FLAGS</div><div class="flag-list" id="flag-list"></div></div>
   <div class="zach-report" id="zach-report">
-    <div class="zach-header">
-      <div class="zach-icon">🔍</div>
-      <div><div class="zach-title">INVESTIGATOR REPORT</div><div class="zach-subtitle" id="zach-token-name">—</div></div>
-    </div>
+    <div class="zach-header"><div class="zach-icon">&#128269;</div><div><div class="zach-title">INVESTIGATOR REPORT</div><div class="zach-subtitle" id="zach-token-name">—</div></div></div>
     <div class="zach-section"><div class="zach-section-title">PRICE ACTION FORENSICS</div><div class="zach-block"><div class="zach-block-lbl">WHAT THE CHART IS TELLING US</div><div class="zach-block-txt" id="z-price-forensics"></div></div></div>
     <div class="zach-section"><div class="zach-section-title">LIQUIDITY FORENSICS</div><div class="zach-block"><div class="zach-block-lbl">DEPTH ANALYSIS AND REMOVAL RISK</div><div class="zach-block-txt" id="z-liq-forensics"></div></div></div>
     <div class="zach-section"><div class="zach-section-title">VOLUME FORENSICS</div><div class="zach-block"><div class="zach-block-lbl">ORGANIC VS MANIPULATED FLOW</div><div class="zach-block-txt" id="z-vol-forensics"></div></div></div>
     <div class="zach-section"><div class="zach-section-title">WALLET FORENSICS</div><div class="zach-block"><div class="zach-block-lbl">ON-CHAIN WALLET BEHAVIOUR</div><div class="zach-block-txt" id="z-wallet-forensics"></div></div></div>
     <div class="zach-section"><div class="zach-section-title">STRUCTURAL RISK</div><div class="zach-block"><div class="zach-block-lbl">TOKENOMICS AND CONCENTRATION RISK</div><div class="zach-block-txt" id="z-structural"></div></div></div>
-    <div id="zach-timeline-section" class="zach-section" style="display:none">
-      <div class="zach-section-title">TIMELINE OF EVENTS</div>
-      <div class="zach-timeline" id="zach-timeline"></div>
-    </div>
+    <div id="zach-timeline-section" class="zach-section" style="display:none"><div class="zach-section-title">TIMELINE OF EVENTS</div><div class="zach-timeline" id="zach-timeline"></div></div>
     <div id="zach-postmortem-section" class="zach-section" style="display:none">
       <div class="zach-section-title">CAUSE OF DEATH</div>
       <div class="zach-block"><div class="zach-block-lbl">PRIMARY CAUSE</div><div class="zach-block-txt" id="z-cause"></div></div>
@@ -425,13 +421,17 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
       <div class="zach-block" style="margin-top:8px"><div class="zach-block-lbl">WARNING SIGNS VISIBLE BEFORE COLLAPSE</div><div class="zach-block-txt" id="z-warnings"></div></div>
       <div class="zach-block" style="margin-top:8px"><div class="zach-block-lbl">LESSONS FOR DEGENS</div><div class="zach-block-txt" id="z-lessons"></div></div>
     </div>
-    <div class="verdict-strip" id="verdict-strip">
-      <div class="verdict-strip-lbl">INVESTIGATOR VERDICT</div>
-      <div class="verdict-strip-txt" id="verdict-strip-txt">—</div>
-    </div>
+    <div class="verdict-strip" id="verdict-strip"><div class="verdict-strip-lbl">INVESTIGATOR VERDICT</div><div class="verdict-strip-txt" id="verdict-strip-txt">—</div></div>
   </div>
- 
   <div class="empty" id="rug-empty"><p>paste any contract address to open an investigation.</p><p>live tokens get threat scoring + wallet forensics. dead tokens get full post-mortem.</p></div>
+</div>
+ 
+<!-- RUG HALL OF FAME -->
+<div id="pane-hof" style="display:none">
+  <div class="sl">the biggest rugs in crypto history</div>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:20px;line-height:1.7">every rug is a lesson. study these so you never repeat them. expanded cards show the warning signs that were visible before collapse.</div>
+  <div class="loading" id="hof-loading"><div class="ldots"><span></span><span></span><span></span></div><p>loading case files...</p></div>
+  <div id="hof-list"></div>
 </div>
  
 <footer>
@@ -471,7 +471,13 @@ function fmtPct(n){if(!n&&n!==0)return'—';return(n>=0?'+':'')+Number(n).toFixe
 function timeAgo(ts){const d=(Date.now()/1000-ts)/86400;if(d<1)return Math.round(d*24)+'h old';if(d<30)return Math.round(d)+'d old';return Math.round(d/30)+'mo old';}
 function fmtNum(n){if(!n)return'—';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Number(n).toFixed(0);}
  
-function switchTab(t){['n','ca','rug'].forEach(id=>{document.getElementById('tab-'+id).classList.toggle('active',id===t);document.getElementById('pane-'+id).style.display=id===t?'':'none';});}
+function switchTab(t){
+  ['n','ca','cmp','rug','hof'].forEach(id=>{
+    document.getElementById('tab-'+id).classList.toggle('active',id===t);
+    document.getElementById('pane-'+id).style.display=id===t?'':'none';
+  });
+  if(t==='hof')loadHallOfFame();
+}
 function switchChart(tf,btn){document.querySelectorAll('.chart-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('chart-1h').classList.toggle('active',tf==='1h');document.getElementById('chart-4h').classList.toggle('active',tf==='4h');}
 function dots(n){let h='';for(let i=0;i<10;i++)h+='<div class="cdot'+(i<n?' on':'')+'"></div>';return h;}
 function talkLabel(n){if(n>=9)return'everywhere on CT';if(n>=7)return'very high buzz';if(n>=5)return'moderate chatter';if(n>=3)return'growing mentions';return'early whispers';}
@@ -500,6 +506,9 @@ function renderNarratives(data){
     const hs=Math.min(10,Math.max(0,parseInt(n.hype_score)%11));
     const fs=Math.min(10,Math.max(0,parseInt(n.fundamentals_score)%11));
     const el=document.createElement('div');el.className='ncard';el.style.animationDelay=(i*0.07)+'s';el.dataset.i=i;
+    // token chips for narrative mapper
+    const chips=getTokensForNarrative(n.name,n.summary);
+    const chipsHtml=chips.length>0?'<div class="token-chips">'+chips.map(c=>'<div class="token-chip" onclick="copyAndAnalyse(\''+c.ca+'\')">'+safe(c.name)+'</div>').join('')+'</div>':'';
     el.innerHTML='<div class="ncard-main" onclick="toggleN('+i+')">'
       +'<div class="ncard-num">'+String(i+1).padStart(2,'0')+'</div>'
       +'<div class="ncard-body">'
@@ -508,6 +517,7 @@ function renderNarratives(data){
       +'<div class="bar-row"><span class="bar-lbl">hype</span><div class="bar-track"><div class="bar-fill bf-hype" style="width:'+hs*10+'%"></div></div><span class="bar-num">'+hs+'/10</span></div>'
       +'<div class="bar-row"><span class="bar-lbl">fundamentals</span><div class="bar-track"><div class="bar-fill bf-fund" style="width:'+fs*10+'%"></div></div><span class="bar-num">'+fs+'/10</span></div>'
       +'<div class="chatter"><span class="chatter-lbl">CT chatter</span><div class="cdots">'+dots(ts)+'</div><span class="chatter-txt">'+talkLabel(ts)+'</span></div>'
+      +chipsHtml
       +'</div><div class="ncard-arrow">&#x203a;</div></div>'
       +'<div class="ncard-detail" id="nd-'+i+'"><div class="detail-grid">'
       +'<div><div class="dblock-lbl">WHY ITS HOT</div><div class="dblock-txt">'+safe(n.why_trending)+'</div></div>'
@@ -518,6 +528,35 @@ function renderNarratives(data){
     list.appendChild(el);
   });
   document.getElementById('n-results').style.display='block';
+}
+ 
+// ── NARRATIVE TOKEN MAPPER ────────────────────────────────────
+const NARRATIVE_TOKENS={
+  'virtuals':[{name:'VIRTUAL',ca:'0x44ff8620b8cA30902395A7bD3F2407e1A091BF73'},{name:'AGENT',ca:'0x0f3D8a38D4C74afBebc2c42695642f0e3acb15D3'}],
+  'ai16z':[{name:'AI16Z',ca:'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'}],
+  'elizaos':[{name:'ELIZA',ca:'5voS9evDjxF589WuEub5i4ti7FWQmZCsAsyD5ucbuRqM'}],
+  'aixbt':[{name:'AIXBT',ca:'0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825'}],
+  'pepe':[{name:'PEPE',ca:'0x6982508145454Ce325dDbE47a25d4ec3d2311933'}],
+  'bonk':[{name:'BONK',ca:'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'}],
+  'wif':[{name:'WIF',ca:'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'}],
+  'brett':[{name:'BRETT',ca:'0x532f27101965dd16442E59d40670FaF5eBB142E4'}],
+  'mog':[{name:'MOG',ca:'0xaaeE1A9723aaDB7afA2810263653A34bA2C21C7a'}],
+  'popcat':[{name:'POPCAT',ca:'7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr'}],
+};
+ 
+function getTokensForNarrative(name,summary){
+  const text=(name+' '+summary).toLowerCase();
+  const results=[];
+  for(const [key,tokens] of Object.entries(NARRATIVE_TOKENS)){
+    if(text.includes(key))results.push(...tokens);
+  }
+  return results.slice(0,4);
+}
+ 
+function copyAndAnalyse(ca){
+  switchTab('ca');
+  document.getElementById('ca-input').value=ca;
+  analyseCA();
 }
  
 function toggleN(i){
@@ -676,150 +715,198 @@ function renderAnalysis(a,mcap,pair){
   });
 }
  
+// ── TOKEN COMPARE ─────────────────────────────────────────────
+async function compareTokens(){
+  const caA=document.getElementById('cmp-a-input').value.trim();
+  const caB=document.getElementById('cmp-b-input').value.trim();
+  if(!caA||!caB)return;
+  const btn=document.getElementById('cmp-btn');btn.disabled=true;btn.textContent='comparing...';
+  document.getElementById('cmp-loading').classList.add('on');document.getElementById('cmp-msg').textContent='fetching both tokens...';
+  document.getElementById('cmp-result').classList.remove('on');document.getElementById('cmp-empty').style.display='none';
+  try{
+    document.getElementById('cmp-msg').textContent='fetching token A...';
+    const [dsrA,dsrB]=await Promise.all([
+      fetch('https://api.dexscreener.com/latest/dex/tokens/'+caA).then(r=>r.json()),
+      fetch('https://api.dexscreener.com/latest/dex/tokens/'+caB).then(r=>r.json())
+    ]);
+    if(!dsrA.pairs?.length)throw new Error('Token A not found');
+    if(!dsrB.pairs?.length)throw new Error('Token B not found');
+    const pA=dsrA.pairs.sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0];
+    const pB=dsrB.pairs.sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0];
+    const totalLiqA=dsrA.pairs.reduce((s,p)=>s+(p.liquidity?.usd||0),0);
+    const totalLiqB=dsrB.pairs.reduce((s,p)=>s+(p.liquidity?.usd||0),0);
+    const totalVolA=dsrA.pairs.reduce((s,p)=>s+(p.volume?.h24||0),0);
+    const totalVolB=dsrB.pairs.reduce((s,p)=>s+(p.volume?.h24||0),0);
+    const chgA=parseFloat(pA.priceChange?.h24||0);
+    const chgB=parseFloat(pB.priceChange?.h24||0);
+    const ageA=pA.pairCreatedAt?(Date.now()/1000-pA.pairCreatedAt/1000)/86400:0;
+    const ageB=pB.pairCreatedAt?(Date.now()/1000-pB.pairCreatedAt/1000)/86400:0;
+    const mcapA=pA.marketCap||0;const mcapB=pB.marketCap||0;
+    const calcImpact=(s,l)=>l>0?(s/(l+s)*100):100;
+    const imp10kA=calcImpact(10000,totalLiqA);const imp10kB=calcImpact(10000,totalLiqB);
+    const nameA=pA.baseToken?.name||'Token A';const nameB=pB.baseToken?.name||'Token B';
+    // build comparison table
+    const metrics=[
+      {label:'NAME',a:nameA,b:nameB,winner:null},
+      {label:'PRICE',a:fmtP(pA.priceUsd),b:fmtP(pB.priceUsd),winner:null},
+      {label:'MARKET CAP',a:fmt(mcapA),b:fmt(mcapB),winner:mcapA>mcapB?'a':mcapB>mcapA?'b':null},
+      {label:'24H CHANGE',a:fmtPct(chgA),b:fmtPct(chgB),winner:chgA>chgB?'a':chgB>chgA?'b':null},
+      {label:'LIQUIDITY',a:fmt(totalLiqA),b:fmt(totalLiqB),winner:totalLiqA>totalLiqB?'a':totalLiqB>totalLiqA?'b':null},
+      {label:'24H VOLUME',a:fmt(totalVolA),b:fmt(totalVolB),winner:totalVolA>totalVolB?'a':totalVolB>totalVolA?'b':null},
+      {label:'$10K PRICE IMPACT',a:imp10kA.toFixed(2)+'%',b:imp10kB.toFixed(2)+'%',winner:imp10kA<imp10kB?'a':imp10kB<imp10kA?'b':null,lowerIsBetter:true},
+      {label:'TOKEN AGE',a:ageA<1?Math.round(ageA*24)+'h':Math.round(ageA)+'d',b:ageB<1?Math.round(ageB*24)+'h':Math.round(ageB)+'d',winner:ageA>ageB?'a':ageB>ageA?'b':null},
+      {label:'CHAIN',a:(pA.chainId||'').toUpperCase(),b:(pB.chainId||'').toUpperCase(),winner:null},
+    ];
+    let tableHtml='';
+    metrics.forEach(m=>{
+      const aClass=m.winner==='a'?'cmp-win':m.winner==='b'?'cmp-lose':'cmp-neutral';
+      const bClass=m.winner==='b'?'cmp-win':m.winner==='a'?'cmp-lose':'cmp-neutral';
+      tableHtml+='<div class="cmp-row"><div class="cmp-val-a '+aClass+'">'+safe(m.a)+'</div><div class="cmp-metric">'+safe(m.label)+'</div><div class="cmp-val-b '+bClass+'">'+safe(m.b)+'</div></div>';
+    });
+    document.getElementById('cmp-table').innerHTML=tableHtml;
+    // AI verdict
+    document.getElementById('cmp-msg').textContent='asking AI for verdict...';
+    const apiKey=await getApiKey();
+    const cmpPrompt='You are a crypto analyst comparing two tokens. Return ONLY a raw JSON object, no markdown, no code blocks, only double quotes, no apostrophes, no newlines inside strings. TOKEN_A: '+nameA+' MCAP:'+fmt(mcapA)+' LIQ:'+fmt(totalLiqA)+' VOL:'+fmt(totalVolA)+' 24H:'+fmtPct(chgA)+' AGE:'+Math.round(ageA)+'d CHAIN:'+pA.chainId+' TOKEN_B: '+nameB+' MCAP:'+fmt(mcapB)+' LIQ:'+fmt(totalLiqB)+' VOL:'+fmt(totalVolB)+' 24H:'+fmtPct(chgB)+' AGE:'+Math.round(ageB)+'d CHAIN:'+pB.chainId+' Return: {"verdict":"3-4 sentence honest comparison — which is the better risk-reward play right now and why, citing specific numbers. Be direct about which one you would rather be in if forced to choose."}';
+    const cmpRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,temperature:0,messages:[{role:'user',content:cmpPrompt}]})});
+    const cmpData=await cmpRes.json();
+    const cmpTxt=cmpData.content?.filter(b=>b.type==='text').map(b=>b.text).join('')||'';
+    const cmpMatch=cmpTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
+    let verdict='—';
+    if(cmpMatch){try{verdict=JSON.parse(cmpMatch[0]).verdict||'—';}catch(e){verdict='—';}}
+    document.getElementById('cmp-verdict-txt').textContent=verdict;
+    document.getElementById('cmp-result').classList.add('on');
+  }catch(e){document.getElementById('cmp-empty').style.display='block';document.getElementById('cmp-empty').innerHTML='<p class="err">error: '+safe(e.message)+'</p>';}
+  document.getElementById('cmp-loading').classList.remove('on');btn.disabled=false;btn.textContent='compare →';
+}
+ 
+// ── RUG HALL OF FAME ──────────────────────────────────────────
+let hofLoaded=false;
+async function loadHallOfFame(){
+  if(hofLoaded)return;
+  document.getElementById('hof-loading').classList.add('on');
+  try{
+    const res=await fetch('/api/rugfame');
+    const data=await res.json();
+    renderHallOfFame(data.rugs||[]);
+    hofLoaded=true;
+  }catch(e){document.getElementById('hof-list').innerHTML='<p class="err" style="font-family:var(--mono);font-size:12px">error loading hall of fame</p>';}
+  document.getElementById('hof-loading').classList.remove('on');
+}
+ 
+function renderHallOfFame(rugs){
+  const list=document.getElementById('hof-list');list.innerHTML='';
+  rugs.forEach((r,i)=>{
+    const el=document.createElement('div');el.className='rug-card';el.style.animationDelay=(i*0.06)+'s';el.dataset.ri=i;
+    el.innerHTML='<div class="rug-card-header" onclick="toggleRug('+i+')">'
+      +'<div class="rug-card-skull">&#x1F480;</div>'
+      +'<div class="rug-card-info">'
+      +'<div class="rug-card-top">'
+      +'<span class="rug-card-name">'+safe(r.name)+'</span>'
+      +'<div class="rug-card-meta"><span class="rug-tag rug-tag-year">'+safe(r.year)+'</span><span class="rug-tag rug-tag-chain">'+safe(r.chain)+'</span><span class="rug-tag rug-tag-loss">'+safe(r.loss)+' loss</span></div>'
+      +'</div>'
+      +'<div class="rug-card-cause">'+safe(r.cause)+'</div>'
+      +'<div class="rug-card-peak">peak: '+safe(r.peak_mcap)+'</div>'
+      +'</div>'
+      +'<div class="rug-card-arrow">&#x203a;</div>'
+      +'</div>'
+      +'<div class="rug-card-body">'
+      +'<div class="rug-body-grid">'
+      +'<div class="rug-body-section"><div class="rug-body-lbl">THE NARRATIVE USED</div><div class="rug-body-txt">'+safe(r.narrative)+'</div></div>'
+      +'<div class="rug-body-section"><div class="rug-body-lbl">WARNING SIGNS THAT WERE VISIBLE</div><div class="rug-body-txt">'+safe(r.warning_signs)+'</div></div>'
+      +'</div>'
+      +'<div class="rug-lesson"><div class="rug-lesson-lbl">LESSON FOR DEGENS</div><div class="rug-lesson-txt">'+safe(r.lesson)+'</div></div>'
+      +'</div>';
+    list.appendChild(el);
+  });
+}
+ 
+function toggleRug(i){
+  const c=document.querySelector('.rug-card[data-ri="'+i+'"]');
+  const was=c.classList.contains('expanded');
+  document.querySelectorAll('.rug-card').forEach(x=>x.classList.remove('expanded'));
+  if(!was)c.classList.add('expanded');
+}
+ 
+// ── RENDER ON-CHAIN PANEL ─────────────────────────────────────
+function renderOnchainPanel(oc){
+  if(!oc||!oc.available){document.getElementById('onchain-panel').classList.remove('on');return;}
+  const isSol=oc.chain==='solana';
+  const conc=parseFloat(oc.top10concentration||0);
+  const isNA=oc.top10concentration==='N/A'||isNaN(conc);
+  const concClass=isNA?'conc-warn':conc>80?'conc-danger':conc>50?'conc-warn':'conc-ok';
+  let html='<div class="conc-badge '+concClass+'">'+(isNA?'HOLDER DATA: ETHERSCAN PRO REQUIRED':'TOP 10 HOLDER CONCENTRATION: '+conc+'%')+'</div>';
+  if(isSol){
+    html+='<div class="sol-flags">';
+    html+='<div class="sol-flag '+(oc.mintAuthorityEnabled?'sol-flag-danger':'sol-flag-ok')+'">'+(oc.mintAuthorityEnabled?'MINT AUTHORITY: ACTIVE — team can print tokens':'MINT AUTHORITY: REVOKED')+'</div>';
+    html+='<div class="sol-flag '+(oc.freezeAuthorityEnabled?'sol-flag-danger':'sol-flag-ok')+'">'+(oc.freezeAuthorityEnabled?'FREEZE AUTHORITY: ACTIVE — team can freeze wallets':'FREEZE AUTHORITY: REVOKED')+'</div>';
+    html+='</div>';
+  }else{
+    html+='<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:8px">DEPLOYER: <span style="color:var(--ink2)">'+safe(oc.deployer||'unknown')+'</span>';
+    if(oc.deployerAge!==null&&oc.deployerAge!==undefined){const ageCol=oc.deployerAge<30?'var(--red)':oc.deployerAge<90?'var(--amber)':'var(--green)';html+=' <span style="font-family:var(--mono);font-size:9px;color:'+ageCol+'">wallet age: '+oc.deployerAge+'d</span>';}
+    if(oc.serialRuggerSignal)html+=' <span style="color:var(--red);font-size:9px;padding:1px 6px;border:1px solid rgba(255,68,68,0.4);background:var(--red-bg)">SERIAL DEPLOYER — '+oc.deployerOtherTokens+' contracts</span>';
+    html+='</div>';
+    html+='<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:8px">CONTRACT: <span style="color:'+(oc.isVerified?'var(--green)':'var(--amber)')+'">'+( oc.isVerified?'VERIFIED':'UNVERIFIED — source code hidden')+'</span></div>';
+    if(oc.contractPatternFlags&&oc.contractPatternFlags.length>0){
+      html+='<div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.08em;margin-bottom:6px;margin-top:10px">CONTRACT PATTERN FLAGS</div>';
+      oc.contractPatternFlags.forEach(f=>{html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:7px 10px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';});
+    }
+  }
+  if(oc.top10holders&&oc.top10holders.length>0){
+    html+='<table class="holders-table"><thead><tr><th>#</th><th>ADDRESS</th><th>HOLDING %</th></tr></thead><tbody>';
+    oc.top10holders.forEach((h,i)=>{const pct=parseFloat(h.pct||0);const barClass=pct>20?'pct-fill-danger':'pct-fill';html+='<tr><td>'+(i+1)+'</td><td class="transfer-addr">'+safe(h.address||'—')+'</td><td><div class="pct-bar"><div class="'+barClass+'" style="width:'+Math.min(100,pct*2)+'px"></div><span>'+safe(h.pct||'—')+'%</span></div></td></tr>';});
+    html+='</tbody></table>';
+  }
+  if(oc.recentTransfers&&oc.recentTransfers.length>0){
+    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:8px">RECENT TRANSACTIONS</div>';
+    html+='<div class="transfers-list">';
+    oc.recentTransfers.slice(0,8).forEach(tx=>{html+='<div class="transfer-row"><span class="transfer-addr">'+safe(tx.from)+'</span><span class="transfer-arrow">&#8594;</span><span class="transfer-addr">'+safe(tx.to)+'</span><span style="color:var(--ink2);margin-left:8px">'+safe(fmtNum(tx.value))+'</span><span class="transfer-time">'+safe(tx.time)+'</span></div>';});
+    html+='</div>';
+  }
+  document.getElementById('onchain-title').textContent=isSol?'ON-CHAIN DATA — SOLSCAN':'ON-CHAIN DATA — ETHERSCAN';
+  document.getElementById('onchain-body').innerHTML=html;
+  document.getElementById('onchain-panel').classList.add('on');
+}
+ 
 // ── RENDER PAIR ANALYSIS PANEL ────────────────────────────────
 function renderPairAnalysis(pa){
   const panel=document.getElementById('pair-analysis-panel');
   if(!pa){panel.style.display='none';return;}
   let html='';
- 
-  // ── BUY/SELL PRESSURE ──────────────────────────────────────
   if(pa.buyPct1h!==null&&pa.buyPct1h!==undefined){
     const bp1=parseInt(pa.buyPct1h),bp24=parseInt(pa.buyPct24h||50);
     const col1=bp1>=80?'var(--red)':bp1<=30?'var(--amber)':'var(--green)';
     const col24=bp24>=80?'var(--red)':bp24<=30?'var(--amber)':'var(--green)';
     html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:10px">BUY / SELL PRESSURE</div>';
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:12px">';
-    html+='<div style="background:var(--bg3);padding:12px 14px">';
-    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:6px">LAST 1H TRANSACTIONS</div>';
-    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
-    html+='<div style="height:8px;flex:'+bp1+';background:var(--green);min-width:2px"></div>';
-    html+='<div style="height:8px;flex:'+(100-bp1)+';background:var(--red);min-width:2px"></div>';
+    html+='<div style="background:var(--bg3);padding:12px 14px"><div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:6px">LAST 1H</div><div style="display:flex;align-items:center;gap:4px;margin-bottom:4px"><div style="height:8px;flex:'+bp1+';background:var(--green);min-width:2px"></div><div style="height:8px;flex:'+(100-bp1)+';background:var(--red);min-width:2px"></div></div><div style="font-family:var(--mono);font-size:10px"><span style="color:var(--green)">'+pa.totalBuys1h+' buys</span> <span style="color:var(--ink3)">vs</span> <span style="color:var(--red)">'+pa.totalSells1h+' sells</span></div><div style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+col1+';margin-top:4px">'+bp1+'% buy pressure</div></div>';
+    html+='<div style="background:var(--bg3);padding:12px 14px"><div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:6px">LAST 24H</div><div style="display:flex;align-items:center;gap:4px;margin-bottom:4px"><div style="height:8px;flex:'+bp24+';background:var(--green);min-width:2px"></div><div style="height:8px;flex:'+(100-bp24)+';background:var(--red);min-width:2px"></div></div><div style="font-family:var(--mono);font-size:10px"><span style="color:var(--green)">'+pa.totalBuys24h+' buys</span> <span style="color:var(--ink3)">vs</span> <span style="color:var(--red)">'+pa.totalSells24h+' sells</span></div><div style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+col24+';margin-top:4px">'+bp24+'% buy pressure</div></div>';
     html+='</div>';
-    html+='<div style="font-family:var(--mono);font-size:10px"><span style="color:var(--green)">'+pa.totalBuys1h+' buys</span> <span style="color:var(--ink3)">vs</span> <span style="color:var(--red)">'+pa.totalSells1h+' sells</span></div>';
-    html+='<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+col1+';margin-top:4px">'+bp1+'% buy pressure</div>';
-    html+='</div>';
-    html+='<div style="background:var(--bg3);padding:12px 14px">';
-    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:6px">LAST 24H TRANSACTIONS</div>';
-    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
-    html+='<div style="height:8px;flex:'+bp24+';background:var(--green);min-width:2px"></div>';
-    html+='<div style="height:8px;flex:'+(100-bp24)+';background:var(--red);min-width:2px"></div>';
-    html+='</div>';
-    html+='<div style="font-family:var(--mono);font-size:10px"><span style="color:var(--green)">'+pa.totalBuys24h+' buys</span> <span style="color:var(--ink3)">vs</span> <span style="color:var(--red)">'+pa.totalSells24h+' sells</span></div>';
-    html+='<div style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+col24+';margin-top:4px">'+bp24+'% buy pressure</div>';
-    html+='</div>';
-    html+='</div>';
-    if(pa.buySellFlags&&pa.buySellFlags.length>0){
-      pa.buySellFlags.forEach(f=>{
-        html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';
-      });
-      html+='<div style="margin-bottom:12px"></div>';
-    }
+    if(pa.buySellFlags&&pa.buySellFlags.length>0){pa.buySellFlags.forEach(f=>{html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';});html+='<div style="margin-bottom:12px"></div>';}
   }
- 
-  // ── LIQUIDITY AGE WARNING ───────────────────────────────────
   if(pa.liqAgeFlags&&pa.liqAgeFlags.length>0){
     html+='<div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.08em;margin-bottom:8px">LIQUIDITY AGE WARNING</div>';
-    pa.liqAgeFlags.forEach(f=>{
-      html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';
-    });
+    pa.liqAgeFlags.forEach(f=>{html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';});
     html+='<div style="margin-bottom:14px"></div>';
   }
- 
-  // ── PRICE IMPACT CALCULATOR ─────────────────────────────────
   html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:10px">PRICE IMPACT — what happens when you sell</div>';
   html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-bottom:16px">';
   (pa.priceImpact||[]).forEach(p=>{
-    const imp=parseFloat(p.impact||0);
-    const col=imp>10?'var(--red)':imp>3?'var(--amber)':'var(--green)';
-    html+='<div style="background:var(--bg3);padding:10px 12px;text-align:center">';
-    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:4px">'+safe(p.label)+' SELL</div>';
-    html+='<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+col+'">'+(imp<0.1?'<0.1':imp.toFixed(1))+'%</div>';
-    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:2px">price drop</div>';
-    html+='</div>';
+    const imp=parseFloat(p.impact||0);const col=imp>10?'var(--red)':imp>3?'var(--amber)':'var(--green)';
+    html+='<div style="background:var(--bg3);padding:10px 12px;text-align:center"><div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-bottom:4px">'+safe(p.label)+' SELL</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:'+col+'">'+(imp<0.1?'<0.1':imp.toFixed(1))+'%</div><div style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-top:2px">price drop</div></div>';
   });
   html+='</div>';
- 
-  // ── EXIT TIME ESTIMATOR ─────────────────────────────────────
-  
- 
-  // ── MULTI-PAIR TRAP ─────────────────────────────────────────
   if(pa.multiPairFlags&&pa.multiPairFlags.length>0){
     html+='<div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.08em;margin-bottom:8px">MULTI-PAIR TRAP SIGNALS</div>';
-    pa.multiPairFlags.forEach(f=>{
-      html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';
-    });
+    pa.multiPairFlags.forEach(f=>{html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:8px 12px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';});
     html+='<div style="margin-bottom:14px"></div>';
   }
- 
-  // ── LIQUIDITY PER PAIR ──────────────────────────────────────
   html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:8px">LIQUIDITY PER TRADING PAIR ('+safe(String(pa.totalPairs||0))+' total pairs)</div>';
   html+='<table class="holders-table"><thead><tr><th>DEX</th><th>CHAIN</th><th>LIQUIDITY</th><th>24H VOL</th><th>% OF TOTAL</th></tr></thead><tbody>';
-  (pa.pairBreakdown||[]).forEach(p=>{
-    const pct=parseFloat(p.pct||0);
-    const barClass=pct>80?'pct-fill-danger':'pct-fill';
-    html+='<tr><td style="text-transform:uppercase">'+safe(p.dex||'—')+'</td><td style="text-transform:uppercase">'+safe(p.chain||'—')+'</td><td>'+safe(fmtNum(p.liq))+'</td><td>'+safe(fmtNum(p.vol24h))+'</td><td><div class="pct-bar"><div class="'+barClass+'" style="width:'+Math.min(100,pct)+'px"></div><span>'+safe(p.pct)+'%</span></div></td></tr>';
-  });
+  (pa.pairBreakdown||[]).forEach(p=>{const pct=parseFloat(p.pct||0);const barClass=pct>80?'pct-fill-danger':'pct-fill';html+='<tr><td style="text-transform:uppercase">'+safe(p.dex||'—')+'</td><td style="text-transform:uppercase">'+safe(p.chain||'—')+'</td><td>'+safe(fmtNum(p.liq))+'</td><td>'+safe(fmtNum(p.vol24h))+'</td><td><div class="pct-bar"><div class="'+barClass+'" style="width:'+Math.min(100,pct)+'px"></div><span>'+safe(p.pct)+'%</span></div></td></tr>';});
   html+='</tbody></table>';
- 
   document.getElementById('pair-analysis-body').innerHTML=html;
   panel.style.display='block';
-}
- 
- 
-function renderOnchainPanel(oc){
-  if(!oc||!oc.available){
-    document.getElementById('onchain-panel').classList.remove('on');return;
-  }
-  const isSol=oc.chain==='solana';
-  const conc=parseFloat(oc.top10concentration||0);
-  const isNA=oc.top10concentration==='N/A'||isNaN(conc);
-  const concClass=isNA?'conc-warn':conc>80?'conc-danger':conc>50?'conc-warn':'conc-ok';
-  let html='<div class="conc-badge '+concClass+'">'+(isNA?'HOLDER DATA: ETHERSCAN PRO REQUIRED':'TOP 10 HOLDER CONCENTRATION: '+conc+'%')+'</div>';
- 
-  if(isSol){
-    html+='<div class="sol-flags">';
-    html+='<div class="sol-flag '+(oc.mintAuthorityEnabled?'sol-flag-danger':'sol-flag-ok')+'">'+(oc.mintAuthorityEnabled?'MINT AUTHORITY: ACTIVE — team can print tokens':'MINT AUTHORITY: REVOKED')+' </div>';
-    html+='<div class="sol-flag '+(oc.freezeAuthorityEnabled?'sol-flag-danger':'sol-flag-ok')+'">'+(oc.freezeAuthorityEnabled?'FREEZE AUTHORITY: ACTIVE — team can freeze wallets':'FREEZE AUTHORITY: REVOKED')+'</div>';
-    html+='</div>';
-  }else{
-    html+='<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:8px">DEPLOYER: <span style="color:var(--ink2)">'+safe(oc.deployer||'unknown')+'</span>';
-    if(oc.deployerAge!==null&&oc.deployerAge!==undefined){
-      const ageCol=oc.deployerAge<30?'var(--red)':oc.deployerAge<90?'var(--amber)':'var(--green)';
-      html+=' <span style="font-family:var(--mono);font-size:9px;color:'+ageCol+'">wallet age: '+oc.deployerAge+'d</span>';
-    }
-    if(oc.serialRuggerSignal)html+=' <span style="color:var(--red);font-size:9px;padding:1px 6px;border:1px solid rgba(255,68,68,0.4);background:var(--red-bg)">SERIAL DEPLOYER — '+oc.deployerOtherTokens+' contracts</span>';
-    html+='</div>';
-    html+='<div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-bottom:8px">CONTRACT: <span style="color:'+(oc.isVerified?'var(--green)':'var(--amber)')+'">'+( oc.isVerified?'VERIFIED':'UNVERIFIED — source code hidden')+'</span></div>';
-    if(oc.contractPatternFlags&&oc.contractPatternFlags.length>0){
-      html+='<div style="font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:0.08em;margin-bottom:6px;margin-top:10px">CONTRACT PATTERN FLAGS</div>';
-      oc.contractPatternFlags.forEach(f=>{
-        html+='<div style="background:var(--red-bg);border:1px solid rgba(255,68,68,0.2);padding:7px 10px;margin-bottom:4px;font-size:12px;color:var(--ink2);line-height:1.5">'+safe(f)+'</div>';
-      });
-    }
-  }
- 
-  if(oc.top10holders&&oc.top10holders.length>0){
-    html+='<table class="holders-table"><thead><tr><th>#</th><th>ADDRESS</th><th>HOLDING %</th></tr></thead><tbody>';
-    oc.top10holders.forEach((h,i)=>{
-      const pct=parseFloat(h.pct||0);
-      const barClass=pct>20?'pct-fill-danger':'pct-fill';
-      html+='<tr><td>'+(i+1)+'</td><td class="transfer-addr">'+safe(h.address||'—')+'</td><td><div class="pct-bar"><div class="'+barClass+'" style="width:'+Math.min(100,pct*2)+'px"></div><span>'+safe(h.pct||'—')+'%</span></div></td></tr>';
-    });
-    html+='</tbody></table>';
-  }
- 
-  if(oc.recentTransfers&&oc.recentTransfers.length>0){
-    html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:8px">RECENT TRANSFERS</div>';
-    html+='<div class="transfers-list">';
-    oc.recentTransfers.slice(0,8).forEach(tx=>{
-      html+='<div class="transfer-row"><span class="transfer-addr">'+safe(tx.from)+'</span><span class="transfer-arrow">→</span><span class="transfer-addr">'+safe(tx.to)+'</span><span style="color:var(--ink2);margin-left:8px">'+safe(fmtNum(tx.value))+'</span><span class="transfer-time">'+safe(tx.time)+'</span></div>';
-    });
-    html+='</div>';
-  }
- 
-  document.getElementById('onchain-title').textContent=isSol?'ON-CHAIN DATA — SOLSCAN':'ON-CHAIN DATA — ETHERSCAN';
-  document.getElementById('onchain-body').innerHTML=html;
-  document.getElementById('onchain-panel').classList.add('on');
 }
  
 // ── INVESTIGATE ───────────────────────────────────────────────
@@ -830,7 +917,6 @@ async function rugCheck(){
   ['rug-score-wrap','rug-metrics','onchain-panel','rug-flags','zach-report'].forEach(id=>document.getElementById(id).classList.remove('on'));
   document.getElementById('pair-analysis-panel').style.display='none';
   document.getElementById('rug-empty').style.display='none';
- 
   try{
     document.getElementById('rug-msg').textContent=MSGS_RUG[1];
     const dsr=await fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca);
@@ -842,17 +928,13 @@ async function rugCheck(){
     const totalVolume24h=pairs.reduce((s,p)=>s+(p.volume?.h24||0),0);
     const totalVolume6h=pairs.reduce((s,p)=>s+(p.volume?.h6||0),0);
     const totalVolume1h=pairs.reduce((s,p)=>s+(p.volume?.h1||0),0);
- 
     document.getElementById('rug-msg').textContent=MSGS_RUG[2];
     const [rugCandles1h,rugCandles4h,onchainData,pairAnalysis]=await Promise.all([
-      fetchCandles(pair,'1h'),
-      fetchCandles(pair,'4h'),
+      fetchCandles(pair,'1h'),fetchCandles(pair,'4h'),
       fetch('/api/onchain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractAddress:ca,chainId:pair.chainId||''})}).then(r=>r.json()).catch(()=>({available:false})),
       fetch('/api/pairanalysis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pairs:dsd.pairs||[]})}).then(r=>r.json()).catch(()=>null)
     ]);
- 
     document.getElementById('rug-msg').textContent=MSGS_RUG[3];
- 
     const liqUsd=totalLiquidity,mcapUsd=pair.marketCap||0,numPairs=pairs.length;
     const liqToMcap=mcapUsd>0?(liqUsd/mcapUsd)*100:0;
     const volToLiq=liqUsd>0?(totalVolume24h/liqUsd)*100:0;
@@ -868,14 +950,11 @@ async function rugCheck(){
     const drawdownPct=maxClose1h>0?((maxClose1h-recentClose)/maxClose1h)*100:0;
     const avgVol=vols1h.slice(-20).reduce((a,b)=>a+b,0)/20;
     const recentVol=vols1h.slice(-3).reduce((a,b)=>a+b,0)/3;
-    const earlyVol=vols1h.slice(0,10).reduce((a,b)=>a+b,0)/10;
     const volTrend=avgVol>0?(recentVol/avgVol)*100:100;
- 
     const noActivity=totalVolume24h<100&&totalVolume6h<20;
     const priceCollapsed=drawdownPct>85&&recentClose<maxClose1h*0.15;
     const volumeCompletelyDead=volTrend<3&&avgVol<10;
     const isDead=(noActivity&&priceCollapsed)||(volumeCompletelyDead&&drawdownPct>70)||(noActivity&&volumeCompletelyDead);
- 
     const liqRiskLabel=(()=>{
       if(mcapUsd>500e6)return liqToMcap<0.3?'low for mega cap':liqToMcap<1?'normal for mega cap':'healthy';
       if(mcapUsd>100e6)return liqToMcap<0.5?'low for large cap':liqToMcap<2?'normal for large cap':'healthy';
@@ -883,77 +962,30 @@ async function rugCheck(){
       if(mcapUsd>1e6)return liqToMcap<5?'DANGER: very thin':liqToMcap<15?'risky':'OK';
       return liqToMcap<10?'DANGER: extreme risk':(liqToMcap<30?'very risky':'high but micro cap');
     })();
- 
     const capTier=mcapUsd>500e6?'mega cap':mcapUsd>100e6?'large cap':mcapUsd>10e6?'mid cap':mcapUsd>1e6?'small cap':'micro cap';
- 
-    // build on-chain context string for Claude
     let onchainContext='ON-CHAIN DATA: ';
     if(onchainData?.available){
       onchainContext+='Top 10 holder concentration: '+onchainData.top10concentration+'%. ';
       if(onchainData.chain==='solana'){
-        onchainContext+='Mint authority: '+(onchainData.mintAuthorityEnabled?'ACTIVE — team can mint unlimited tokens':'revoked')+'. ';
-        onchainContext+='Freeze authority: '+(onchainData.freezeAuthorityEnabled?'ACTIVE — team can freeze wallets':'revoked')+'. ';
+        onchainContext+='Mint authority: '+(onchainData.mintAuthorityEnabled?'ACTIVE':'revoked')+'. Freeze authority: '+(onchainData.freezeAuthorityEnabled?'ACTIVE':'revoked')+'. ';
       }else{
-        onchainContext+='Deployer has deployed '+onchainData.deployerOtherTokens+' other tokens — '+(onchainData.serialRuggerSignal?'SERIAL DEPLOYER FLAG':'within normal range')+'. ';
-        onchainContext+='Contract verified: '+(onchainData.isVerified?'yes':'NO — unverified contract')+'. ';
+        onchainContext+='Deployer deployed '+onchainData.deployerOtherTokens+' contracts — '+(onchainData.serialRuggerSignal?'SERIAL DEPLOYER FLAG':'normal')+'. ';
+        onchainContext+='Contract verified: '+(onchainData.isVerified?'yes':'NO')+'. ';
       }
-      if(onchainData.recentTransfers?.length>0){
-        onchainContext+='Recent large transfers detected: '+onchainData.recentTransfers.length+' transfers in last window. ';
-      }
-      if(onchainData.contractPatternFlags?.length>0){
-        onchainContext+='CONTRACT FLAGS: '+onchainData.contractPatternFlags.join(' | ')+'. ';
-      }
-    }else{
-      onchainContext+='not available for this chain. ';
-    }
+      if(onchainData.contractPatternFlags?.length>0)onchainContext+='CONTRACT FLAGS: '+onchainData.contractPatternFlags.join(' | ')+'. ';
+    }else{onchainContext+='not available. ';}
     if(pairAnalysis){
       onchainContext+='PRICE IMPACT: $1K sell moves price '+pairAnalysis.priceImpact?.[0]?.impact?.toFixed(1)+'%, $10K sell moves '+pairAnalysis.priceImpact?.[2]?.impact?.toFixed(1)+'%. ';
       if(pairAnalysis.buySellFlags?.length>0)onchainContext+='BUY/SELL FLAGS: '+pairAnalysis.buySellFlags.join(' | ')+'. ';
       if(pairAnalysis.liqAgeFlags?.length>0)onchainContext+='LIQUIDITY AGE FLAGS: '+pairAnalysis.liqAgeFlags.join(' | ')+'. ';
       if(pairAnalysis.multiPairFlags?.length>0)onchainContext+='MULTI-PAIR FLAGS: '+pairAnalysis.multiPairFlags.join(' | ')+'. ';
-      if(pairAnalysis.buyPct1h!==null)onchainContext+='1H BUY PRESSURE: '+pairAnalysis.buyPct1h+'% ('+pairAnalysis.totalBuys1h+' buys vs '+pairAnalysis.totalSells1h+' sells). ';
+      if(pairAnalysis.buyPct1h!==null)onchainContext+='1H BUY PRESSURE: '+pairAnalysis.buyPct1h+'%. ';
     }
- 
     document.getElementById('rug-msg').textContent=MSGS_RUG[4];
     const apiKey=await getApiKey();
- 
     const zachPrompt=isDead
-      ?'You are a blockchain forensics investigator. Write a detailed ZachXBT-style post-mortem on this dead or rugged token. Cite exact numbers. Reconstruct what happened. Return ONLY raw JSON, no markdown, only double quotes, no apostrophes, no newlines inside strings.'
-        +' TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+' '
-        +' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)+' MCAP: '+fmt(mcapUsd)+' CAP TIER: '+capTier
-        +' LIQUIDITY: '+fmt(liqUsd)+' LIQ/MCAP: '+liqToMcap.toFixed(2)+'%'
-        +' PEAK IN WINDOW: '+fmtP(maxClose1h)+' CURRENT: '+fmtP(recentClose)+' DRAWDOWN: '+drawdownPct.toFixed(1)+'%'
-        +' VOLUME 1H: '+fmt(totalVolume1h)+' 6H: '+fmt(totalVolume6h)+' 24H: '+fmt(totalVolume24h)
-        +' VOLUME TREND: '+volTrend.toFixed(0)+'% of average'
-        +' PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)
-        +' AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' PAIRS: '+numPairs
-        +' '+onchainContext
-        +' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')
-        +' Return JSON: {"threat_score":100,"mode":"postmortem","verdict_title":"5-7 word specific verdict","verdict_summary":"2 sentences citing exact numbers","flags":[{"severity":"red","title":"flag","detail":"exact data"}],"price_forensics":"exact price death description with numbers","liquidity_forensics":"how liquidity was drained","volume_forensics":"volume signature before death","wallet_forensics":"what the on-chain data reveals about insider behaviour","structural_risk":"why this token was vulnerable","cause_of_death":"single precise cause","narrative_used":"what CT hype was used","warning_signs":"specific data points visible before collapse — teach degens what to look for","timeline":[{"event":"title","detail":"what happened with numbers","severity":"red or amber"}],"lessons":"3 specific lessons degens can apply immediately","investigator_verdict":"3-sentence ZachXBT-style final verdict"}'
-      :'You are a blockchain forensics investigator. Investigate this LIVE token for suspicious activity. Be specific with numbers. Do NOT flag low liq/mcap ratio as suspicious for large cap tokens above $100M. Only flag genuine manipulation patterns. Return ONLY raw JSON, no markdown, only double quotes, no apostrophes, no newlines inside strings.'
-        +' TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+' '
-        +' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)+' MCAP: '+fmt(mcapUsd)+' CAP TIER: '+capTier
-        +' LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs LIQ/MCAP: '+liqToMcap.toFixed(2)+'% ('+liqRiskLabel+')'
-        +' 24H VOL: '+fmt(totalVolume24h)+' VOL/LIQ: '+volToLiq.toFixed(1)+'%'
-        +' PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)
-        +' AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')
-        +' DRAWDOWN FROM RECENT HIGH: '+drawdownPct.toFixed(1)+'%'
-        +' VOLUME TREND: '+volTrend.toFixed(0)+'% of average'
-        +' '+onchainContext
-        +' SUSPICIOUS SIGNALS:'
-        +(volToLiq>300?' vol/liq>300% possible wash trading;':'')
-        +(chg24h>200?' 24H pump>200% pump and dump pattern;':'')
-        +(chg24h<-60?' 24H dump>60% coordinated exit;':'')
-        +(agedays<7&&mcapUsd>1e6?' under 7d old with mcap>$1M high manipulation risk;':'')
-        +(onchainData?.mintAuthorityEnabled?' MINT AUTHORITY ACTIVE;':'')
-        +(onchainData?.freezeAuthorityEnabled?' FREEZE AUTHORITY ACTIVE;':'')
-        +(onchainData?.serialRuggerSignal?' SERIAL DEPLOYER '+onchainData.deployerOtherTokens+' previous tokens;':'')
-        +(onchainData?.isVerified===false?' UNVERIFIED CONTRACT;':'')
-        +(parseFloat(onchainData?.top10concentration||0)>80?' TOP10 HOLD '+onchainData.top10concentration+'% extreme concentration;':'')
-        +' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')
-        +' LAST 10 x 4H CLOSES: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')
-        +' Return JSON: {"threat_score":0,"mode":"livecheck","verdict_title":"5-7 word specific verdict","verdict_summary":"2 sentences citing exact numbers","flags":[{"severity":"red or amber or green","title":"flag","detail":"exact data"}],"price_forensics":"price action analysis for manipulation signals","liquidity_forensics":"liquidity health in context of cap tier","volume_forensics":"organic vs manipulated volume assessment","wallet_forensics":"what the on-chain wallet data reveals","structural_risk":"structural vulnerabilities","timeline":[{"event":"title","detail":"what the data shows","severity":"red or amber or green"}],"investigator_verdict":"3-sentence ZachXBT-style threat assessment"}';
- 
+      ?'You are a blockchain forensics investigator. Write a ZachXBT-style post-mortem on this dead token. Cite exact numbers. Return ONLY raw JSON, no markdown, only double quotes, no apostrophes, no newlines inside strings. TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)+' MCAP: '+fmt(mcapUsd)+' CAP TIER: '+capTier+' LIQUIDITY: '+fmt(liqUsd)+' LIQ/MCAP: '+liqToMcap.toFixed(2)+'% PEAK: '+fmtP(maxClose1h)+' CURRENT: '+fmtP(recentClose)+' DRAWDOWN: '+drawdownPct.toFixed(1)+'% VOL 1H: '+fmt(totalVolume1h)+' 6H: '+fmt(totalVolume6h)+' 24H: '+fmt(totalVolume24h)+' VOLUME TREND: '+volTrend.toFixed(0)+'% PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)+' AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' PAIRS: '+numPairs+' '+onchainContext+' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')+' Return JSON: {"threat_score":100,"mode":"postmortem","verdict_title":"5-7 word specific verdict","verdict_summary":"2 sentences citing exact numbers","flags":[{"severity":"red","title":"flag","detail":"exact data"}],"price_forensics":"exact price death description","liquidity_forensics":"how liquidity was drained","volume_forensics":"volume signature before death","wallet_forensics":"what on-chain data reveals","structural_risk":"why this token was vulnerable","cause_of_death":"single precise cause","narrative_used":"what CT hype was used","warning_signs":"specific data points visible before collapse","timeline":[{"event":"title","detail":"what happened","severity":"red or amber"}],"lessons":"3 specific lessons","investigator_verdict":"3-sentence final verdict"}'
+      :'You are a blockchain forensics investigator. Investigate this LIVE token. Be specific. Do NOT flag low liq/mcap for large caps above $100M. Return ONLY raw JSON, no markdown, only double quotes, no apostrophes, no newlines inside strings. TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)+' MCAP: '+fmt(mcapUsd)+' CAP TIER: '+capTier+' LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs LIQ/MCAP: '+liqToMcap.toFixed(2)+'% ('+liqRiskLabel+') 24H VOL: '+fmt(totalVolume24h)+' VOL/LIQ: '+volToLiq.toFixed(1)+'% PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)+' AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' DRAWDOWN: '+drawdownPct.toFixed(1)+'% VOLUME TREND: '+volTrend.toFixed(0)+'% '+onchainContext+' SUSPICIOUS: '+(volToLiq>300?' vol/liq>300%;':'')+(chg24h>200?' 24H pump>200%;':'')+(chg24h<-60?' 24H dump>60%;':'')+(agedays<7&&mcapUsd>1e6?' <7d old with mcap>$1M;':'')+(onchainData?.mintAuthorityEnabled?' MINT ACTIVE;':'')+(onchainData?.freezeAuthorityEnabled?' FREEZE ACTIVE;':'')+(onchainData?.serialRuggerSignal?' SERIAL DEPLOYER;':'')+(onchainData?.isVerified===false?' UNVERIFIED;':'')+(parseFloat(onchainData?.top10concentration||0)>80?' TOP10 HOLD '+onchainData?.top10concentration+'%;':'')+' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')+' LAST 10 x 4H: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')+' Return JSON: {"threat_score":0,"mode":"livecheck","verdict_title":"5-7 word verdict","verdict_summary":"2 sentences with exact numbers","flags":[{"severity":"red or amber or green","title":"flag","detail":"exact data"}],"price_forensics":"price action analysis","liquidity_forensics":"liquidity health in context of cap tier","volume_forensics":"organic vs manipulated","wallet_forensics":"what on-chain data reveals","structural_risk":"structural vulnerabilities","timeline":[{"event":"title","detail":"data","severity":"red or amber or green"}],"investigator_verdict":"3-sentence threat assessment"}';
     const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1500,temperature:0,messages:[{role:'user',content:zachPrompt}]})});
     const zachData=await zachRes.json();
     if(!zachRes.ok)throw new Error(zachData.error?.message||'API error');
@@ -963,108 +995,31 @@ async function rugCheck(){
     let report;
     try{report=JSON.parse(zachMatch[0]);}
     catch(pe){
-      const fixed=zachMatch[0]
-        .replace(/[\u2018\u2019\u2032]/g,"'")
-        .replace(/[\u201C\u201D]/g,'"')
-        .replace(/[\u2013\u2014\u2015]/g,'-')
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g,' ')
-        .replace(/,(\s*[}\]])/g,'$1')
-        .replace(/([^\\])\\([^"\\\/bfnrtu])/g,'$1 $2')
-        .replace(/\n/g,' ')
-        .replace(/\r/g,' ')
-        .replace(/\t/g,' ');
+      const fixed=zachMatch[0].replace(/[\u2018\u2019\u2032]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/[\u2013\u2014\u2015]/g,'-').replace(/[\u0000-\u001F\u007F-\u009F]/g,' ').replace(/,(\s*[}\]])/g,'$1').replace(/([^\\])\\([^"\\\/bfnrtu])/g,'$1 $2').replace(/\n/g,' ').replace(/\r/g,' ').replace(/\t/g,' ');
       try{report=JSON.parse(fixed);}
-      catch(pe2){
-        // last resort — extract what we can
-        const scoreMatch=fixed.match(/"threat_score"\s*:\s*(\d+)/);
-        const titleMatch=fixed.match(/"verdict_title"\s*:\s*"([^"]+)"/);
-        const summaryMatch=fixed.match(/"verdict_summary"\s*:\s*"([^"]+)"/);
-        report={
-          threat_score:scoreMatch?parseInt(scoreMatch[1]):50,
-          verdict_title:titleMatch?titleMatch[1]:'Analysis incomplete',
-          verdict_summary:summaryMatch?summaryMatch[1]:'JSON parse error — partial data shown',
-          flags:[],price_forensics:'—',liquidity_forensics:'—',volume_forensics:'—',
-          wallet_forensics:'—',structural_risk:'—',timeline:[],investigator_verdict:'—'
-        };
-      }
+      catch(pe2){const sm=fixed.match(/"threat_score"\s*:\s*(\d+)/);const tm=fixed.match(/"verdict_title"\s*:\s*"([^"]+)"/);const sum=fixed.match(/"verdict_summary"\s*:\s*"([^"]+)"/);report={threat_score:sm?parseInt(sm[1]):50,verdict_title:tm?tm[1]:'Analysis incomplete',verdict_summary:sum?sum[1]:'JSON parse error — partial data shown',flags:[],price_forensics:'—',liquidity_forensics:'—',volume_forensics:'—',wallet_forensics:'—',structural_risk:'—',timeline:[],investigator_verdict:'—'};}
     }
- 
-    // render threat score
     const score=Math.min(100,Math.max(0,parseInt(report.threat_score)||0));
-    const scoreEl=document.getElementById('rug-score-num');
-    scoreEl.textContent=score;scoreEl.className='rug-score-num '+(score>=70?'rug-score-high':score>=40?'rug-score-mid':'rug-score-low');
-    const modeBadge=document.getElementById('rug-mode-badge');
-    modeBadge.textContent=isDead?'CASE CLOSED — POST MORTEM':'ACTIVE INVESTIGATION';
-    modeBadge.className='rug-mode-badge '+(isDead?'mode-dead':'mode-live');
-    document.getElementById('rug-verdict-title').textContent=report.verdict_title||'—';
-    document.getElementById('rug-verdict-sub').textContent=report.verdict_summary||'—';
-    document.getElementById('rug-score-wrap').classList.add('on');
- 
-    // render evidence metrics
+    const scoreEl=document.getElementById('rug-score-num');scoreEl.textContent=score;scoreEl.className='rug-score-num '+(score>=70?'rug-score-high':score>=40?'rug-score-mid':'rug-score-low');
+    const modeBadge=document.getElementById('rug-mode-badge');modeBadge.textContent=isDead?'CASE CLOSED — POST MORTEM':'ACTIVE INVESTIGATION';modeBadge.className='rug-mode-badge '+(isDead?'mode-dead':'mode-live');
+    document.getElementById('rug-verdict-title').textContent=report.verdict_title||'—';document.getElementById('rug-verdict-sub').textContent=report.verdict_summary||'—';document.getElementById('rug-score-wrap').classList.add('on');
     const metricsGrid=document.getElementById('rug-metrics-grid');metricsGrid.innerHTML='';
-    const metrics=[
-      {lbl:'LIQUIDITY',val:fmt(liqUsd),sub:'across '+numPairs+' pair'+(numPairs>1?'s':'')},
-      {lbl:'LIQ / MCAP',val:liqToMcap.toFixed(1)+'%',sub:liqRiskLabel},
-      {lbl:'VOL / LIQ',val:volToLiq.toFixed(1)+'%',sub:volToLiq>300?'HIGH: wash trading signal':(volToLiq<5?'LOW: dead volume':'normal')},
-      {lbl:'TOKEN AGE',val:agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d',sub:agedays<3?'VERY NEW: extreme risk':agedays<7?'NEW: high risk':agedays<30?'young':'established'},
-      {lbl:'PRICE CHANGES',val:fmtPct(chg24h),sub:'6H: '+fmtPct(chg6h)+' 1H: '+fmtPct(chg1h)},
-      {lbl:'DRAWDOWN',val:drawdownPct.toFixed(1)+'%',sub:'from recent peak'},
-      {lbl:'VOLUME TREND',val:volTrend.toFixed(0)+'%',sub:volTrend<30?'COLLAPSING: exit signal':volTrend<60?'declining: watch':'vs recent avg'},
-      {lbl:'CAP TIER',val:fmt(mcapUsd),sub:capTier+' · '+safe(pair.chainId||'')}
-    ];
-    metrics.forEach(m=>{metricsGrid.innerHTML+='<div class="metric-block"><div class="metric-lbl">'+safe(m.lbl)+'</div><div class="metric-val">'+safe(m.val)+'</div><div class="metric-sub">'+safe(m.sub)+'</div></div>';});
+    [{lbl:'LIQUIDITY',val:fmt(liqUsd),sub:'across '+numPairs+' pair'+(numPairs>1?'s':'')},{lbl:'LIQ / MCAP',val:liqToMcap.toFixed(1)+'%',sub:liqRiskLabel},{lbl:'VOL / LIQ',val:volToLiq.toFixed(1)+'%',sub:volToLiq>300?'HIGH: wash signal':(volToLiq<5?'LOW: dead volume':'normal')},{lbl:'TOKEN AGE',val:agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d',sub:agedays<3?'VERY NEW':agedays<7?'NEW: high risk':agedays<30?'young':'established'},{lbl:'PRICE CHANGES',val:fmtPct(chg24h),sub:'6H: '+fmtPct(chg6h)+' 1H: '+fmtPct(chg1h)},{lbl:'DRAWDOWN',val:drawdownPct.toFixed(1)+'%',sub:'from recent peak'},{lbl:'VOLUME TREND',val:volTrend.toFixed(0)+'%',sub:volTrend<30?'COLLAPSING':volTrend<60?'declining':'vs recent avg'},{lbl:'CAP TIER',val:fmt(mcapUsd),sub:capTier+' · '+safe(pair.chainId||'')}].forEach(m=>{metricsGrid.innerHTML+='<div class="metric-block"><div class="metric-lbl">'+safe(m.lbl)+'</div><div class="metric-val">'+safe(m.val)+'</div><div class="metric-sub">'+safe(m.sub)+'</div></div>';});
     document.getElementById('rug-metrics').classList.add('on');
- 
-    // render on-chain panel
     renderOnchainPanel(onchainData);
     renderPairAnalysis(pairAnalysis);
- 
-    // render flags
     const flagList=document.getElementById('flag-list');flagList.innerHTML='';
-    (report.flags||[]).forEach(f=>{
-      const sev=f.severity==='red'?'flag-red':f.severity==='green'?'flag-green':'flag-amber';
-      const lbl=f.severity==='red'?'RED':f.severity==='green'?'OK':'WARN';
-      flagList.innerHTML+='<div class="flag-item"><span class="flag-icon '+sev+'">'+lbl+'</span><div class="flag-txt"><div class="flag-title">'+safe(f.title||'')+'</div><div class="flag-desc">'+safe(f.detail||'')+'</div></div></div>';
-    });
+    (report.flags||[]).forEach(f=>{const sev=f.severity==='red'?'flag-red':f.severity==='green'?'flag-green':'flag-amber';const lbl=f.severity==='red'?'RED':f.severity==='green'?'OK':'WARN';flagList.innerHTML+='<div class="flag-item"><span class="flag-icon '+sev+'">'+lbl+'</span><div class="flag-txt"><div class="flag-title">'+safe(f.title||'')+'</div><div class="flag-desc">'+safe(f.detail||'')+'</div></div></div>';});
     document.getElementById('rug-flags').classList.add('on');
- 
-    // render zach report
     document.getElementById('zach-token-name').textContent=(pair.baseToken?.name||'unknown')+' ('+safe(pair.baseToken?.symbol||'')+') — '+(isDead?'CLOSED CASE':'ACTIVE CASE');
-    document.getElementById('z-price-forensics').textContent=report.price_forensics||'—';
-    document.getElementById('z-liq-forensics').textContent=report.liquidity_forensics||'—';
-    document.getElementById('z-vol-forensics').textContent=report.volume_forensics||'—';
-    document.getElementById('z-wallet-forensics').textContent=report.wallet_forensics||'—';
-    document.getElementById('z-structural').textContent=report.structural_risk||'—';
- 
-    const timelineSection=document.getElementById('zach-timeline-section');
-    const timeline=document.getElementById('zach-timeline');
-    if(report.timeline&&report.timeline.length>0){
-      timeline.innerHTML='';
-      report.timeline.forEach(e=>{
-        const dotClass=e.severity==='red'?'dot-red':e.severity==='green'?'dot-green':'dot-amber';
-        timeline.innerHTML+='<div class="zach-event"><div class="zach-event-dot '+dotClass+'"></div><div class="zach-event-content"><div class="zach-event-title">'+safe(e.event||'')+'</div><div class="zach-event-desc">'+safe(e.detail||'')+'</div></div></div>';
-      });
-      timelineSection.style.display='block';
-    }else{timelineSection.style.display='none';}
- 
+    document.getElementById('z-price-forensics').textContent=report.price_forensics||'—';document.getElementById('z-liq-forensics').textContent=report.liquidity_forensics||'—';document.getElementById('z-vol-forensics').textContent=report.volume_forensics||'—';document.getElementById('z-wallet-forensics').textContent=report.wallet_forensics||'—';document.getElementById('z-structural').textContent=report.structural_risk||'—';
+    const timelineSection=document.getElementById('zach-timeline-section');const timeline=document.getElementById('zach-timeline');
+    if(report.timeline&&report.timeline.length>0){timeline.innerHTML='';report.timeline.forEach(e=>{const dc=e.severity==='red'?'dot-red':e.severity==='green'?'dot-green':'dot-amber';timeline.innerHTML+='<div class="zach-event"><div class="zach-event-dot '+dc+'"></div><div class="zach-event-content"><div class="zach-event-title">'+safe(e.event||'')+'</div><div class="zach-event-desc">'+safe(e.detail||'')+'</div></div></div>';});timelineSection.style.display='block';}else{timelineSection.style.display='none';}
     const postmortemSection=document.getElementById('zach-postmortem-section');
-    if(isDead){
-      document.getElementById('z-cause').textContent=report.cause_of_death||'—';
-      document.getElementById('z-narrative').textContent=report.narrative_used||'—';
-      document.getElementById('z-warnings').textContent=report.warning_signs||'—';
-      document.getElementById('z-lessons').textContent=report.lessons||'—';
-      postmortemSection.style.display='block';
-    }else{postmortemSection.style.display='none';}
- 
-    const vstrip=document.getElementById('verdict-strip');
-    document.getElementById('verdict-strip-txt').textContent=report.investigator_verdict||'—';
-    vstrip.className='verdict-strip '+(score>=70?'verdict-strip-guilty':score>=40?'verdict-strip-suspicious':'verdict-strip-innocent');
+    if(isDead){document.getElementById('z-cause').textContent=report.cause_of_death||'—';document.getElementById('z-narrative').textContent=report.narrative_used||'—';document.getElementById('z-warnings').textContent=report.warning_signs||'—';document.getElementById('z-lessons').textContent=report.lessons||'—';postmortemSection.style.display='block';}else{postmortemSection.style.display='none';}
+    const vstrip=document.getElementById('verdict-strip');document.getElementById('verdict-strip-txt').textContent=report.investigator_verdict||'—';vstrip.className='verdict-strip '+(score>=70?'verdict-strip-guilty':score>=40?'verdict-strip-suspicious':'verdict-strip-innocent');
     document.getElementById('zach-report').classList.add('on');
- 
-  }catch(e){
-    document.getElementById('rug-empty').style.display='block';
-    document.getElementById('rug-empty').innerHTML='<p class="err">error: '+safe(e.message)+'</p>';
-  }
+  }catch(e){document.getElementById('rug-empty').style.display='block';document.getElementById('rug-empty').innerHTML='<p class="err">error: '+safe(e.message)+'</p>';}
   document.getElementById('rug-loading').classList.remove('on');btn.disabled=false;btn.textContent='investigate →';
 }
 </script>
