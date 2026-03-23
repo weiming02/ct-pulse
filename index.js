@@ -94,68 +94,32 @@ async function getEthOnchainData(contractAddress, chainId) {
   if (!chainNumericId) return null;
   try {
     const [contractInfo, txList] = await Promise.all([
-      etherscanFetch(chainNumericId, {
-        module: 'contract', action: 'getsourcecode', address: contractAddress
-      }),
-      etherscanFetch(chainNumericId, {
-        module: 'account', action: 'txlist', address: contractAddress,
-        page: 1, offset: 10, sort: 'asc'
-      }),
+      etherscanFetch(chainNumericId, { module: 'contract', action: 'getsourcecode', address: contractAddress }),
+      etherscanFetch(chainNumericId, { module: 'account', action: 'txlist', address: contractAddress, page: 1, offset: 10, sort: 'asc' }),
     ]);
- 
     const deployer = txList?.[0]?.from || null;
     const deployerFundedAt = txList?.[0]?.timeStamp ? new Date(parseInt(txList[0].timeStamp) * 1000).toISOString().slice(0, 10) : null;
- 
-    let deployerOtherTokens = 0;
-    let deployerAge = null;
+    let deployerOtherTokens = 0, deployerAge = null;
     if (deployer) {
-      const deployerTxs = await etherscanFetch(chainNumericId, {
-        module: 'account', action: 'txlist', address: deployer,
-        page: 1, offset: 50, sort: 'asc'
-      });
+      const deployerTxs = await etherscanFetch(chainNumericId, { module: 'account', action: 'txlist', address: deployer, page: 1, offset: 50, sort: 'asc' });
       deployerOtherTokens = (deployerTxs || []).filter(tx => !tx.to || tx.to === '').length;
       if (deployerTxs?.[0]?.timeStamp) {
-        const firstTxDate = new Date(parseInt(deployerTxs[0].timeStamp) * 1000);
-        const ageDays = Math.floor((Date.now() - firstTxDate.getTime()) / 86400000);
-        deployerAge = ageDays;
+        deployerAge = Math.floor((Date.now() - parseInt(deployerTxs[0].timeStamp) * 1000) / 86400000);
       }
     }
- 
-    const recentTxs = await etherscanFetch(chainNumericId, {
-      module: 'account', action: 'txlist', address: contractAddress,
-      page: 1, offset: 10, sort: 'desc'
-    });
- 
+    const recentTxs = await etherscanFetch(chainNumericId, { module: 'account', action: 'txlist', address: contractAddress, page: 1, offset: 10, sort: 'desc' });
     const recentTransfers = (recentTxs || []).slice(0, 8).map(tx => ({
-      from: (tx.from || '').slice(0, 8) + '...',
-      to: (tx.to || '').slice(0, 8) + '...',
+      from: (tx.from || '').slice(0, 8) + '...', to: (tx.to || '').slice(0, 8) + '...',
       value: parseFloat(tx.value || 0) / 1e18,
       time: tx.timeStamp ? new Date(parseInt(tx.timeStamp) * 1000).toISOString().slice(0, 16).replace('T', ' ') : '—',
     }));
- 
     const isVerified = !!(contractInfo?.[0]?.SourceCode && contractInfo[0].SourceCode !== '');
- 
-    // contract address pattern flags
     const contractPatternFlags = [];
-    if (deployerAge !== null && deployerAge < 30) contractPatternFlags.push('deployer wallet is less than 30 days old — fresh wallet is a classic rug setup');
+    if (deployerAge !== null && deployerAge < 30) contractPatternFlags.push('deployer wallet is ' + deployerAge + ' days old — fresh wallet is a classic rug setup');
     if (deployerOtherTokens > 5) contractPatternFlags.push('deployer has launched ' + deployerOtherTokens + ' contracts — serial deployer pattern');
     if (!isVerified) contractPatternFlags.push('contract source code not verified — team is hiding the code');
     if (deployerAge !== null && deployerAge < 7 && deployerOtherTokens > 1) contractPatternFlags.push('new wallet deploying multiple contracts rapidly — coordinated rug operation pattern');
- 
-    return {
-      chain: chainId,
-      deployer: deployer ? deployer.slice(0, 10) + '...' : 'unknown',
-      deployerFull: deployer,
-      deployerAge,
-      deployerFundedAt,
-      top10holders: [],
-      top10concentration: 'N/A',
-      recentTransfers,
-      deployerOtherTokens,
-      isVerified,
-      serialRuggerSignal: deployerOtherTokens > 5,
-      contractPatternFlags,
-    };
+    return { chain: chainId, deployer: deployer ? deployer.slice(0, 10) + '...' : 'unknown', deployerFull: deployer, deployerAge, deployerFundedAt, top10holders: [], top10concentration: 'N/A', recentTransfers, deployerOtherTokens, isVerified, serialRuggerSignal: deployerOtherTokens > 5, contractPatternFlags };
   } catch (e) { return null; }
 }
  
@@ -187,71 +151,25 @@ async function getSolanaOnchainData(mintAddress) {
       value: parseFloat(tx.amount || 0) / Math.pow(10, decimals),
       time: tx.block_time ? new Date(tx.block_time * 1000).toISOString().slice(0, 16).replace('T', ' ') : '—',
     }));
-    return {
-      chain: 'solana',
-      mintAuthority: meta.mint_authority || 'null',
-      freezeAuthority: meta.freeze_authority || 'null',
-      mintAuthorityEnabled: !!meta.mint_authority && meta.mint_authority !== 'null' && meta.mint_authority !== '',
-      freezeAuthorityEnabled: !!meta.freeze_authority && meta.freeze_authority !== 'null' && meta.freeze_authority !== '',
-      top10holders: processedHolders,
-      top10concentration: top10pct.toFixed(1),
-      recentTransfers,
-      totalSupply: meta.supply,
-      decimals,
-      contractPatternFlags: [],
-    };
+    return { chain: 'solana', mintAuthority: meta.mint_authority || 'null', freezeAuthority: meta.freeze_authority || 'null', mintAuthorityEnabled: !!meta.mint_authority && meta.mint_authority !== 'null' && meta.mint_authority !== '', freezeAuthorityEnabled: !!meta.freeze_authority && meta.freeze_authority !== 'null' && meta.freeze_authority !== '', top10holders: processedHolders, top10concentration: top10pct.toFixed(1), recentTransfers, totalSupply: meta.supply, decimals, contractPatternFlags: [] };
   } catch { return null; }
 }
  
-// ── PRICE IMPACT + LIQUIDITY ANALYSIS ────────────────────────
 function analysePairs(pairs) {
   const totalLiq = pairs.reduce((s, p) => s + (p.liquidity?.usd || 0), 0);
- 
-  // price impact using constant product AMM formula: impact = sellSize / (liq + sellSize)
-  const calcImpact = (sellUsd, liqUsd) => {
-    if (!liqUsd || liqUsd <= 0) return 100;
-    return ((sellUsd / (liqUsd + sellUsd)) * 100);
-  };
- 
-  const priceImpact = [1000, 5000, 10000, 50000].map(size => ({
-    size,
-    impact: calcImpact(size, totalLiq),
-    label: size >= 1000 ? '$' + (size / 1000) + 'K' : '$' + size
+  const calcImpact = (sellUsd, liqUsd) => { if (!liqUsd || liqUsd <= 0) return 100; return (sellUsd / (liqUsd + sellUsd)) * 100; };
+  const priceImpact = [1000, 5000, 10000, 50000].map(size => ({ size, impact: calcImpact(size, totalLiq), label: '$' + (size >= 1000 ? (size / 1000) + 'K' : size) }));
+  const pairBreakdown = pairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)).slice(0, 8).map(p => ({
+    dex: p.dexId || 'unknown', chain: p.chainId || '', liq: p.liquidity?.usd || 0, vol24h: p.volume?.h24 || 0,
+    pct: totalLiq > 0 ? (((p.liquidity?.usd || 0) / totalLiq) * 100).toFixed(1) : '0',
   }));
- 
-  // per-pair liquidity breakdown
-  const pairBreakdown = pairs
-    .sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))
-    .slice(0, 8)
-    .map(p => ({
-      dex: p.dexId || 'unknown',
-      chain: p.chainId || '',
-      liq: p.liquidity?.usd || 0,
-      vol24h: p.volume?.h24 || 0,
-      pct: totalLiq > 0 ? (((p.liquidity?.usd || 0) / totalLiq) * 100).toFixed(1) : '0',
-      pairAddress: p.pairAddress ? p.pairAddress.slice(0, 8) + '...' : '—'
-    }));
- 
-  // largest single pair concentration
   const topPairPct = pairBreakdown.length > 0 ? parseFloat(pairBreakdown[0].pct) : 0;
- 
-  // multi-pair trap detection
   const multiPairFlags = [];
-  if (pairs.length > 8 && totalLiq < 500000) {
-    multiPairFlags.push('token spread across ' + pairs.length + ' pairs with only ' + formatUsd(totalLiq) + ' total liquidity — each exit point is razor thin, slippage will be extreme');
-  }
-  if (pairs.length > 3 && topPairPct < 30) {
-    multiPairFlags.push('liquidity is fragmented — largest single pool holds only ' + topPairPct + '% of total liquidity, no clean exit exists');
-  }
-  if (topPairPct > 95 && pairs.length > 1) {
-    multiPairFlags.push('95%+ of liquidity sits in one pool — if that pool is drained the entire token becomes illiquid instantly');
-  }
+  if (pairs.length > 8 && totalLiq < 500000) multiPairFlags.push('token spread across ' + pairs.length + ' pairs with only ' + formatUsd(totalLiq) + ' total liquidity — each exit point is razor thin, slippage will be extreme');
+  if (pairs.length > 3 && topPairPct < 30) multiPairFlags.push('liquidity is fragmented — largest single pool holds only ' + topPairPct + '% of total liquidity, no clean exit exists');
+  if (topPairPct > 95 && pairs.length > 1) multiPairFlags.push('95%+ of liquidity sits in one pool — if that pool is drained the entire token becomes illiquid instantly');
   const thinPairs = pairs.filter(p => (p.liquidity?.usd || 0) < 5000 && (p.volume?.h24 || 0) > 1000);
-  if (thinPairs.length > 2) {
-    multiPairFlags.push(thinPairs.length + ' pairs have under $5K liquidity but active trading volume — wash trading or honeypot trap to create illusion of activity');
-  }
- 
-  // ── BUY/SELL PRESSURE RATIO ──────────────────────────────────
+  if (thinPairs.length > 2) multiPairFlags.push(thinPairs.length + ' pairs have under $5K liquidity but active trading volume — wash trading or honeypot trap');
   const totalBuys1h = pairs.reduce((s, p) => s + (p.txns?.h1?.buys || 0), 0);
   const totalSells1h = pairs.reduce((s, p) => s + (p.txns?.h1?.sells || 0), 0);
   const totalBuys24h = pairs.reduce((s, p) => s + (p.txns?.h24?.buys || 0), 0);
@@ -260,50 +178,23 @@ function analysePairs(pairs) {
   const totalTxns24h = totalBuys24h + totalSells24h;
   const buyPct1h = totalTxns1h > 0 ? ((totalBuys1h / totalTxns1h) * 100).toFixed(0) : null;
   const buyPct24h = totalTxns24h > 0 ? ((totalBuys24h / totalTxns24h) * 100).toFixed(0) : null;
- 
   const buySellFlags = [];
   if (buyPct1h !== null) {
-    const bp = parseInt(buyPct1h);
-    const bp24 = parseInt(buyPct24h || 50);
-    // only flag if BOTH 1h and 24h are extreme AND volume is high enough to be meaningful
-    if (bp >= 95 && bp24 >= 90 && totalTxns1h > 30 && totalTxns24h > 200) {
-      buySellFlags.push('1H buy ratio ' + bp + '% AND 24H buy ratio ' + bp24 + '% — sustained extreme buy dominance across both timeframes with ' + totalTxns24h + ' total transactions. this level of one-sided pressure with high volume is consistent with coordinated bot activity');
-    } else if (bp <= 10 && bp24 <= 20 && totalTxns1h > 20) {
-      buySellFlags.push('1H sell ratio ' + (100-bp) + '% AND 24H sell ratio ' + (100-bp24) + '% — overwhelming sell pressure sustained across both timeframes (' + totalSells24h + ' sells vs ' + totalBuys24h + ' buys). coordinated exit pattern');
-    }
+    const bp = parseInt(buyPct1h), bp24 = parseInt(buyPct24h || 50);
+    if (bp >= 95 && bp24 >= 90 && totalTxns1h > 30 && totalTxns24h > 200) buySellFlags.push('1H buy ratio ' + bp + '% AND 24H buy ratio ' + bp24 + '% — sustained extreme buy dominance across both timeframes with ' + totalTxns24h + ' total transactions. consistent with coordinated bot activity');
+    else if (bp <= 10 && bp24 <= 20 && totalTxns1h > 20) buySellFlags.push('1H sell ratio ' + (100-bp) + '% AND 24H sell ratio ' + (100-bp24) + '% — overwhelming sell pressure sustained across both timeframes. coordinated exit pattern');
   }
- 
-  // ── LIQUIDITY AGE WARNING ─────────────────────────────────────
   const now = Date.now();
   const liqAgeFlags = [];
-  const pairAges = pairs
-    .filter(p => p.pairCreatedAt && (p.liquidity?.usd || 0) > 1000)
-    .map(p => ({ age: (now - p.pairCreatedAt) / 3600000, liq: p.liquidity?.usd || 0, dex: p.dexId || 'unknown' }))
-    .sort((a, b) => a.age - b.age);
- 
+  const pairAges = pairs.filter(p => p.pairCreatedAt && (p.liquidity?.usd || 0) > 1000).map(p => ({ age: (now - p.pairCreatedAt) / 3600000, liq: p.liquidity?.usd || 0, dex: p.dexId || 'unknown' })).sort((a, b) => a.age - b.age);
   if (pairAges.length > 0) {
-    const newestPair = pairAges[0];
-    if (newestPair.age < 24) {
-      liqAgeFlags.push('new liquidity pool opened ' + newestPair.age.toFixed(1) + 'h ago on ' + newestPair.dex + ' with ' + formatUsd(newestPair.liq) + ' — fresh liquidity injection on existing token is a classic pre-pump setup');
-    } else if (newestPair.age < 48) {
-      liqAgeFlags.push('liquidity added to ' + newestPair.dex + ' within last 48h (' + newestPair.age.toFixed(0) + 'h ago) — recent liquidity injection, monitor for coordinated pump');
-    }
-    // check if multiple new pools opened recently
-    const veryNewPools = pairAges.filter(p => p.age < 48);
-    if (veryNewPools.length >= 2) {
-      liqAgeFlags.push(veryNewPools.length + ' new liquidity pools opened within 48h — rapid multi-pool deployment is a known tactic to create trading activity illusion');
-    }
+    const newest = pairAges[0];
+    if (newest.age < 24) liqAgeFlags.push('new liquidity pool opened ' + newest.age.toFixed(1) + 'h ago on ' + newest.dex + ' with ' + formatUsd(newest.liq) + ' — fresh liquidity injection on existing token is a classic pre-pump setup');
+    else if (newest.age < 48) liqAgeFlags.push('liquidity added to ' + newest.dex + ' within last 48h (' + newest.age.toFixed(0) + 'h ago) — recent liquidity injection, monitor for coordinated pump');
+    const veryNew = pairAges.filter(p => p.age < 48);
+    if (veryNew.length >= 2) liqAgeFlags.push(veryNew.length + ' new liquidity pools opened within 48h — rapid multi-pool deployment is a known tactic to create trading activity illusion');
   }
- 
-  // ── EXIT TIME ESTIMATOR ───────────────────────────────────────
-  
- 
-  return {
-    priceImpact, pairBreakdown, multiPairFlags, topPairPct,
-    totalPairs: pairs.length, totalLiq,
-    buyPct1h, buyPct24h, totalBuys1h, totalSells1h, totalBuys24h, totalSells24h,
-    buySellFlags, liqAgeFlags
-  };
+  return { priceImpact, pairBreakdown, multiPairFlags, topPairPct, totalPairs: pairs.length, totalLiq, buyPct1h, buyPct24h, totalBuys1h, totalSells1h, totalBuys24h, totalSells24h, buySellFlags, liqAgeFlags };
 }
  
 function formatUsd(n) {
@@ -314,6 +205,18 @@ function formatUsd(n) {
   return '$' + Number(n).toFixed(2);
 }
  
+// ── RUG HALL OF FAME — static curated list ────────────────────
+const RUG_HALL_OF_FAME = [
+  { name: 'SQUID Game Token', symbol: 'SQUID', year: '2021', chain: 'BSC', peak_mcap: '$2.1B', loss: '99.99%', cause: 'Honeypot rug pull', narrative: 'Rode the Netflix Squid Game viral moment. Team created a token you could buy but not sell — classic honeypot. Price went from fractions to $2,800 in days.', warning_signs: 'Could not sell tokens. Anonymous team. No audit. Launched during peak Netflix show hype — pure narrative play with zero fundamentals.', lesson: 'If you cannot find a sell transaction on the blockchain, it is a honeypot. Always verify sells exist before buying. Viral pop culture tokens with anonymous teams are extremely high risk.' },
+  { name: 'OneCoin', symbol: 'ONE', year: '2017', chain: 'None (not on blockchain)', peak_mcap: '$4B raised', loss: '100%', cause: 'Ponzi scheme — not a real blockchain', narrative: 'Marketed as the Bitcoin killer with a real blockchain. Had 3 million members globally. Founder Ruja Ignatova aka Cryptoqueen disappeared in 2017 with billions.', warning_signs: 'No public blockchain. Could not independently verify transactions. Relied entirely on trust in founders. Multi-level referral structure. Promised guaranteed returns.', lesson: 'If you cannot independently verify transactions on a public block explorer it does not exist. No legitimate crypto project requires referrals to earn. Guaranteed returns in crypto are always a lie.' },
+  { name: 'Luna Classic', symbol: 'LUNC', year: '2022', chain: 'Terra', peak_mcap: '$40B', loss: '99.99%', cause: 'Algorithmic stablecoin death spiral', narrative: 'UST was supposed to be a decentralised stablecoin backed by LUNA. Anchor Protocol offered 20% APY on UST. Billions poured in chasing yield. When UST depegged LUNA was minted to restore the peg causing hyperinflation.', warning_signs: '20% yield on a stablecoin is not sustainable. Algorithmic stablecoins have no real backing. Concentration of UST in Anchor was 70%+ — single point of failure. Do Kwon publicly mocked critics on Twitter.', lesson: 'Unsustainable yields are the loudest warning sign in crypto. Algorithmic stablecoins are not stablecoins. Never put more than you can lose in any single yield protocol regardless of TVL.' },
+  { name: 'FTX Token', symbol: 'FTT', year: '2022', chain: 'Ethereum', peak_mcap: '$9B', loss: '97%', cause: 'Exchange collapse — FTX balance sheet was mostly FTT', narrative: 'FTT was the native token of FTX exchange. Sam Bankman-Fried was celebrated as a genius philanthropist. FTX was seen as the most reputable exchange. CoinDesk leaked that Alameda balance sheet was majority FTT — triggering a bank run.', warning_signs: 'Exchange token whose main utility was discounts. Circular — FTX used FTT as collateral for Alameda loans. SBF was aggressively political and PR-focused. No proof of reserves. Binance offloaded FTT position publicly.', lesson: 'Exchange tokens are not investments they are liabilities. No proof of reserves means no trust. When a competitor publicly dumps your token that is a five-alarm fire. Centralised entities fail the same way banks do.' },
+  { name: 'Bitconnect', symbol: 'BCC', year: '2018', chain: 'Bitcoin sidechain', peak_mcap: '$2.7B', loss: '100%', cause: 'Ponzi — lending bot was fake', narrative: 'Promised 1% daily returns via a trading bot. Had massive YouTuber promoter network. Carlos Matos became a meme. Required locking BCC for returns. Collapsed after receiving cease and desist letters.', warning_signs: '1% daily return = 3700% annually. No verifiable trading bot. Required buying their token to participate. MLM referral structure. Anonymous team. Promoted exclusively by paid influencers.', lesson: 'Daily guaranteed returns are mathematically impossible to sustain. Influencer promotions in crypto are paid advertisements not endorsements. If the product requires buying a token to earn returns it is a Ponzi.' },
+  { name: 'Frosties NFT', symbol: 'FROSTIES', year: '2022', chain: 'Ethereum', peak_mcap: '$1.3M mint', loss: '100%', cause: 'Classic NFT rug pull — devs disappeared after mint', narrative: 'Cute ice cream NFT project promising staking rewards, metaverse land, and a game. Sold out in minutes. Team deleted Discord and Twitter immediately after mint.', warning_signs: 'Anonymous team. Promises of metaverse and game with no working product. Sold out fast creating FOMO. Discord was barely moderated. No funds held in escrow or timelock.', lesson: 'Anonymous NFT teams with no locked funds can disappear instantly after mint. Never mint a project where the team has no skin in the game beyond the art. Promises of games and metaverses without demos are empty.' },
+  { name: 'Meerkat Finance', symbol: 'MEERKAT', year: '2021', chain: 'BSC', peak_mcap: '$31M TVL', loss: '100%', cause: 'Rug pull disguised as exploit', narrative: 'Yield vault on BSC. Launched on day one of BSC DeFi summer. Within 24 hours of launch claimed to have been exploited. Founders took $31M claiming it was a hack.', warning_signs: 'Launched with no audit. Vault contracts had admin keys that could drain funds. Team was anonymous. TVL grew too fast in 24 hours indicating coordinated deposits. BSC fees were low making rugs cheap.', lesson: 'Never deposit into an unaudited vault. Admin keys in smart contracts are a backdoor. Exploits that happen on day one of launch are almost always the team. Low-fee chains lower the cost of rugging.' },
+  { name: 'Safemoon', symbol: 'SFM', year: '2021', chain: 'BSC', peak_mcap: '$6B', loss: '99%', cause: 'Misleading tokenomics and developer exit', narrative: 'Promised to go to the moon with a 10% tax on transactions — half burned, half to liquidity. Went viral on Reddit and TikTok. CTO was later charged by SEC for fraud and diverting funds.', warning_signs: 'High transaction taxes benefit early holders and developers disproportionately. No clear product. Viral social media growth without fundamental backing. Celebrity and influencer promotion. CTO John Karony later charged with fraud.', lesson: 'High transaction taxes are not tokenomics they are extraction mechanisms. Viral tokens with no product almost never deliver. SEC charges follow crypto fraud — anonymous teams with funds are not untouchable.' },
+];
+ 
 // ── API ROUTES ────────────────────────────────────────────────
 app.get('/api/key', rateLimit, (req, res) => {
   const origin = req.headers.referer || req.headers.origin || '';
@@ -323,32 +226,27 @@ app.get('/api/key', rateLimit, (req, res) => {
   res.json({ key: ANTHROPIC_API_KEY });
 });
  
+app.get('/api/rugfame', rateLimit, (req, res) => {
+  res.json({ rugs: RUG_HALL_OF_FAME });
+});
+ 
 app.post('/api/onchain', rateLimit, async (req, res) => {
   const { contractAddress, chainId } = req.body;
   if (!contractAddress || !chainId) return res.status(400).json({ error: 'missing contractAddress or chainId' });
   try {
     let data = null;
-    if (chainId === 'solana') {
-      data = await getSolanaOnchainData(contractAddress);
-    } else {
-      data = await getEthOnchainData(contractAddress, chainId);
-    }
+    if (chainId === 'solana') data = await getSolanaOnchainData(contractAddress);
+    else data = await getEthOnchainData(contractAddress, chainId);
     if (!data) return res.json({ available: false, reason: 'chain not supported or API unavailable' });
     res.json({ available: true, ...data });
-  } catch (e) {
-    res.json({ available: false, reason: e.message });
-  }
+  } catch (e) { res.json({ available: false, reason: e.message }); }
 });
  
 app.post('/api/pairanalysis', rateLimit, async (req, res) => {
   const { pairs } = req.body;
   if (!pairs || !Array.isArray(pairs)) return res.status(400).json({ error: 'missing pairs array' });
-  try {
-    const analysis = analysePairs(pairs);
-    res.json(analysis);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { res.json(analysePairs(pairs)); }
+  catch (e) { res.status(500).json({ error: e.message }); }
 });
  
 app.post('/api/narratives', rateLimit, async (req, res) => {
@@ -357,9 +255,7 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
     const cached = await cacheGet(CACHE_KEY);
     if (cached && cached.narratives && cached.timestamp) {
       const age = Date.now() - cached.timestamp;
-      if (age < CACHE_TTL_MS) {
-        return res.json({ narratives: cached.narratives, cached: true, cachedAt: cached.timestamp, nextRefresh: cached.timestamp + CACHE_TTL_MS });
-      }
+      if (age < CACHE_TTL_MS) return res.json({ narratives: cached.narratives, cached: true, cachedAt: cached.timestamp, nextRefresh: cached.timestamp + CACHE_TTL_MS });
     }
     const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const userMsg = 'Today is ' + today + '. You are a crypto researcher tracking emerging tech in blockchain. Return ONLY a valid JSON array, no markdown. Exactly 6 objects covering: AI agents with wallets (Virtuals, ai16z, ElizaOS), agentic commerce and infrastructure, decentralised AI compute, new on-chain behaviours from automation. Name actual projects and teams. Fields: name, summary, hype_score, fundamentals_score, cycle_stage, talk_score, verdict, why_trending, comparable, next_move. cycle_stage must be one of: early, mid-cycle, peak hype, late / cooling. All strings single line no apostrophes. Sort by talk_score descending.';
