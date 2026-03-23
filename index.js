@@ -99,60 +99,67 @@ async function getEthOnchainData(contractAddress, chainId) {
   const base = getEtherscanBase(chainId);
   if (!base) return null;
   try {
-    const [holders, transfers, contractInfo] = await Promise.all([
-      etherscanFetch(base, { module: 'token', action: 'tokenholderlist', contractaddress: contractAddress, page: 1, offset: 10, sort: 'desc' }),
-      etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 20, sort: 'desc' }),
+    const [transfers, contractInfo, creationTx] = await Promise.all([
+      etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 50, sort: 'desc' }),
       etherscanFetch(base, { module: 'contract', action: 'getsourcecode', address: contractAddress }),
+      etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 1, sort: 'asc' }),
     ]);
- 
-    // get deployer from first tx
-    const firstTx = await etherscanFetch(base, { module: 'account', action: 'tokentx', contractaddress: contractAddress, page: 1, offset: 1, sort: 'asc' });
-    const deployer = firstTx?.[0]?.from || null;
- 
-    // get deployer tx history if we have deployer
+
+    const deployer = creationTx?.[0]?.from || null;
+
     let deployerHistory = null;
     if (deployer) {
-      deployerHistory = await etherscanFetch(base, { module: 'account', action: 'tokentx', address: deployer, page: 1, offset: 20, sort: 'desc' });
+      deployerHistory = await etherscanFetch(base, {
+        module: 'account', action: 'tokentx', address: deployer, page: 1, offset: 50, sort: 'desc'
+      });
     }
- 
-    // process holders
-    const totalSupplyRaw = holders?.reduce((s, h) => s + parseFloat(h.TokenHolderQuantity || 0), 0) || 0;
-    const processedHolders = (holders || []).slice(0, 10).map(h => ({
-      address: h.TokenHolderAddress,
-      pct: totalSupplyRaw > 0 ? ((parseFloat(h.TokenHolderQuantity) / totalSupplyRaw) * 100).toFixed(1) : '?',
-      qty: h.TokenHolderQuantity
+
+    // infer holder concentration from recent transfers
+    const holderMap = {};
+    (transfers || []).forEach(tx => {
+      const to = tx.to?.toLowerCase();
+      const from = tx.from?.toLowerCase();
+      const val = parseFloat(tx.value || 0);
+      if (to) holderMap[to] = (holderMap[to] || 0) + val;
+      if (from) holderMap[from] = (holderMap[from] || 0) - val;
+    });
+    const positiveHolders = Object.entries(holderMap)
+      .filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1]);
+    const totalInferred = positiveHolders.reduce((s, [, v]) => s + v, 0);
+    const top10 = positiveHolders.slice(0, 10).map(([addr, val]) => ({
+      address: addr.slice(0, 8) + '...',
+      pct: totalInferred > 0 ? ((val / totalInferred) * 100).toFixed(1) : '?'
     }));
- 
-    // top 10 concentration
-    const top10pct = processedHolders.reduce((s, h) => s + parseFloat(h.pct || 0), 0);
- 
-    // recent large transfers (last 20 txs)
+    const top10pct = top10.reduce((s, h) => s + parseFloat(h.pct || 0), 0);
+
+    // recent transfers (last 10)
     const recentTransfers = (transfers || []).slice(0, 10).map(tx => ({
-      from: tx.from?.slice(0, 8) + '...',
-      to: tx.to?.slice(0, 8) + '...',
-      value: parseFloat(tx.value) / Math.pow(10, parseInt(tx.tokenDecimal || 18)),
-      time: new Date(parseInt(tx.timeStamp) * 1000).toISOString().slice(0, 16).replace('T', ' '),
-      hash: tx.hash?.slice(0, 10) + '...'
+      from: (tx.from || '').slice(0, 8) + '...',
+      to: (tx.to || '').slice(0, 8) + '...',
+      value: parseFloat(tx.value || 0) / Math.pow(10, parseInt(tx.tokenDecimal || 18)),
+      time: tx.timeStamp ? new Date(parseInt(tx.timeStamp) * 1000).toISOString().slice(0, 16).replace('T', ' ') : '—',
     }));
- 
-    // check if deployer has other tokens (serial rugger signal)
-    const deployerTokenCount = deployerHistory ? new Set(deployerHistory.map(tx => tx.contractAddress)).size : 0;
- 
-    // is contract verified
-    const isVerified = contractInfo?.[0]?.SourceCode && contractInfo[0].SourceCode !== '';
- 
+
+    const deployerOtherTokens = deployerHistory
+      ? new Set(deployerHistory.map(tx => tx.contractAddress?.toLowerCase()).filter(Boolean)).size
+      : 0;
+
+    const isVerified = !!(contractInfo?.[0]?.SourceCode && contractInfo[0].SourceCode !== '');
+
     return {
       chain: chainId,
       deployer: deployer ? deployer.slice(0, 10) + '...' : 'unknown',
       deployerFull: deployer,
-      top10holders: processedHolders,
+      top10holders: top10,
       top10concentration: top10pct.toFixed(1),
+      top10note: 'estimated from recent 50 transfers',
       recentTransfers,
-      deployerOtherTokens: deployerTokenCount,
+      deployerOtherTokens,
       isVerified,
-      serialRuggerSignal: deployerTokenCount > 3
+      serialRuggerSignal: deployerOtherTokens > 3
     };
-  } catch { return null; }
+  } catch (e) { return null; }
 }
  
 async function getSolanaOnchainData(mintAddress) {
