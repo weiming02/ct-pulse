@@ -339,23 +339,16 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
 <!-- NARRATIVES -->
 <div id="pane-n">
   <!-- LIVE SIGNALS SECTION -->
-  <div class="sl">live signals — from crypto media + reddit right now</div>
   <div style="background:var(--bg2);border:1px solid var(--border-strong);padding:16px 20px;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
     <div>
-      <div style="font-size:13px;color:var(--ink2);line-height:1.5">real headlines from CoinDesk, The Block, Decrypt, Blockworks, CoinTelegraph + Reddit hot posts</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.5">real headlines from CoinDesk, The Block, Decrypt, Blockworks, CoinTelegraph + Reddit hot posts — Claude identifies which narratives are actually gaining momentum right now</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px" id="live-signal-meta">refreshes every 2h · sources: 5 media outlets + 5 subreddits</div>
     </div>
     <button class="ca-btn" id="live-signal-btn" onclick="loadLiveSignals()" style="padding:10px 20px;font-size:11px;white-space:nowrap">scan live signals →</button>
   </div>
   <div class="loading" id="ls-loading" style="padding:32px 0"><div class="ldots"><span></span><span></span><span></span></div><p id="ls-msg">fetching headlines...</p></div>
   <div id="ls-results" style="display:none;margin-bottom:28px"></div>
- 
-  <!-- AI NARRATIVES SECTION -->
-  <div class="sl" style="margin-top:8px">ai narrative analysis</div>
-  <button class="big-btn" id="narrative-btn" onclick="loadNarratives()"><div class="btn-pulse" id="btn-pulse"></div>scan today's crypto narratives</button>
-  <div class="loading" id="n-loading"><div class="ldots"><span></span><span></span><span></span></div><p id="n-msg">scanning...</p></div>
-  <div id="n-results" style="display:none"><div class="sl">top narratives right now</div><div class="nlist" id="nlist"></div></div>
-  <div class="empty" id="n-empty"><p>hit the button to scan today's crypto narratives.</p><p>powered by claude + upstash cache.</p></div>
+  <div class="empty" id="ls-empty" style="display:none"><p>hit scan to pull live narrative signals from crypto media and reddit.</p></div>
 </div>
  
 <!-- CHART ANALYSIS -->
@@ -492,7 +485,7 @@ async function getApiKey(){
   return cachedApiKey;
 }
  
-const MSGS_N=['scanning for emerging tech narratives...','finding the real signal...','separating alpha from noise...','checking what builders are shipping...'];
+ 
 const MSGS_CA=['fetching token data from DEXScreener...','pulling 1H candles...','pulling 4H candles...','sending to AI analyst...','identifying formations + entry zones...'];
 const MSGS_RUG=['opening case file...','collecting DEXScreener evidence...','pulling on-chain wallet data...','cross-referencing suspicious patterns...','compiling forensic report...'];
  
@@ -510,91 +503,11 @@ function switchTab(t){
   if(t==='hof')loadHallOfFame();
 }
 function switchChart(tf,btn){document.querySelectorAll('.chart-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('chart-1h').classList.toggle('active',tf==='1h');document.getElementById('chart-4h').classList.toggle('active',tf==='4h');}
-function dots(n){let h='';for(let i=0;i<10;i++)h+='<div class="cdot'+(i<n?' on':'')+'"></div>';return h;}
-function talkLabel(n){if(n>=9)return'everywhere on CT';if(n>=7)return'very high buzz';if(n>=5)return'moderate chatter';if(n>=3)return'growing mentions';return'early whispers';}
-function cycleClass(s){s=(s||'').toLowerCase();if(s.includes('early'))return'cyc-early';if(s.includes('peak')||s.includes('late')||s.includes('cool')||s.includes('dead'))return'cyc-late';return'cyc-mid';}
- 
-async function loadNarratives(){
-  const btn=document.getElementById('narrative-btn');
-  btn.disabled=true;document.getElementById('btn-pulse').style.cssText='background:var(--ink3);animation:none';
-  document.getElementById('n-loading').classList.add('on');document.getElementById('n-msg').textContent=MSGS_N[Math.floor(Math.random()*MSGS_N.length)];
-  document.getElementById('n-results').style.display='none';document.getElementById('n-empty').style.display='none';
-  try{
-    const res=await fetch('/api/narratives',{method:'POST',headers:{'Content-Type':'application/json'}});
-    const data=await res.json();
-    if(data.error)throw new Error(data.error);
-    renderNarratives(data.narratives);
-    const cachedAt=data.cachedAt?new Date(data.cachedAt):new Date();
-    document.getElementById('last-updated').textContent=(data.cached?'cached ':'live ')+cachedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  }catch(e){document.getElementById('n-empty').style.display='block';document.getElementById('n-empty').innerHTML='<p class="err">error: '+safe(e.message)+'</p>';}
-  document.getElementById('n-loading').classList.remove('on');btn.disabled=false;document.getElementById('btn-pulse').style.cssText='';
-}
- 
-function renderNarratives(data){
-  const list=document.getElementById('nlist');list.innerHTML='';
-  data.forEach((n,i)=>{
-    const ts=Math.min(10,Math.max(1,n.talk_score||Math.round(n.hype_score)));
-    const hs=Math.min(10,Math.max(0,parseInt(n.hype_score)%11));
-    const fs=Math.min(10,Math.max(0,parseInt(n.fundamentals_score)%11));
-    const el=document.createElement('div');el.className='ncard';el.style.animationDelay=(i*0.07)+'s';el.dataset.i=i;
-    // token chips for narrative mapper
-    const chips=getTokensForNarrative(n.name,n.summary);
-    const chipsHtml=chips.length>0?'<div class="token-chips">'+chips.map(c=>'<div class="token-chip" onclick="copyAndAnalyse(\''+c.ca+'\')">'+safe(c.name)+'</div>').join('')+'</div>':'';
-    el.innerHTML='<div class="ncard-main" onclick="toggleN('+i+')">'
-      +'<div class="ncard-num">'+String(i+1).padStart(2,'0')+'</div>'
-      +'<div class="ncard-body">'
-      +'<div class="ncard-top"><span class="ncard-name">'+safe(n.name)+'</span><span class="cyc '+cycleClass(n.cycle_stage)+'">'+safe(n.cycle_stage)+'</span></div>'
-      +'<p class="ncard-summary">'+safe(n.summary)+'</p>'
-      +'<div class="bar-row"><span class="bar-lbl">hype</span><div class="bar-track"><div class="bar-fill bf-hype" style="width:'+hs*10+'%"></div></div><span class="bar-num">'+hs+'/10</span></div>'
-      +'<div class="bar-row"><span class="bar-lbl">fundamentals</span><div class="bar-track"><div class="bar-fill bf-fund" style="width:'+fs*10+'%"></div></div><span class="bar-num">'+fs+'/10</span></div>'
-      +'<div class="chatter"><span class="chatter-lbl">CT chatter</span><div class="cdots">'+dots(ts)+'</div><span class="chatter-txt">'+talkLabel(ts)+'</span></div>'
-      +chipsHtml
-      +'</div><div class="ncard-arrow">&#x203a;</div></div>'
-      +'<div class="ncard-detail" id="nd-'+i+'"><div class="detail-grid">'
-      +'<div><div class="dblock-lbl">WHY ITS HOT</div><div class="dblock-txt">'+safe(n.why_trending)+'</div></div>'
-      +'<div><div class="dblock-lbl">COMPARABLE TO</div><div class="dblock-txt">'+safe(n.comparable)+'</div></div>'
-      +'<div><div class="dblock-lbl">WHAT HAPPENS NEXT</div><div class="dblock-txt">'+safe(n.next_move)+'</div></div>'
-      +'<div><div class="dblock-lbl">VERDICT</div><div class="dblock-txt">'+safe(n.verdict)+'</div></div>'
-      +'</div></div>';
-    list.appendChild(el);
-  });
-  document.getElementById('n-results').style.display='block';
-}
- 
-// ── NARRATIVE TOKEN MAPPER ────────────────────────────────────
-const NARRATIVE_TOKENS={
-  'virtuals':[{name:'VIRTUAL',ca:'0x44ff8620b8cA30902395A7bD3F2407e1A091BF73'},{name:'AGENT',ca:'0x0f3D8a38D4C74afBebc2c42695642f0e3acb15D3'}],
-  'ai16z':[{name:'AI16Z',ca:'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'}],
-  'elizaos':[{name:'ELIZA',ca:'5voS9evDjxF589WuEub5i4ti7FWQmZCsAsyD5ucbuRqM'}],
-  'aixbt':[{name:'AIXBT',ca:'0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825'}],
-  'pepe':[{name:'PEPE',ca:'0x6982508145454Ce325dDbE47a25d4ec3d2311933'}],
-  'bonk':[{name:'BONK',ca:'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'}],
-  'wif':[{name:'WIF',ca:'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'}],
-  'brett':[{name:'BRETT',ca:'0x532f27101965dd16442E59d40670FaF5eBB142E4'}],
-  'mog':[{name:'MOG',ca:'0xaaeE1A9723aaDB7afA2810263653A34bA2C21C7a'}],
-  'popcat':[{name:'POPCAT',ca:'7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr'}],
-};
- 
-function getTokensForNarrative(name,summary){
-  const text=(name+' '+summary).toLowerCase();
-  const results=[];
-  for(const [key,tokens] of Object.entries(NARRATIVE_TOKENS)){
-    if(text.includes(key))results.push(...tokens);
-  }
-  return results.slice(0,4);
-}
  
 function copyAndAnalyse(ca){
   switchTab('ca');
   document.getElementById('ca-input').value=ca;
   analyseCA();
-}
- 
-function toggleN(i){
-  const c=document.querySelector('.ncard[data-i="'+i+'"]');
-  const was=c.classList.contains('expanded');
-  document.querySelectorAll('.ncard').forEach(x=>x.classList.remove('expanded'));
-  if(!was)c.classList.add('expanded');
 }
  
 function calcLevels(cands,livePriceOverride){
@@ -947,50 +860,125 @@ async function loadLiveSignals(){
   document.getElementById('ls-loading').classList.add('on');
   document.getElementById('ls-msg').textContent='fetching headlines from crypto media + reddit...';
   document.getElementById('ls-results').style.display='none';
+  document.getElementById('ls-empty').style.display='none';
   try{
     const res=await fetch('/api/trending-narratives',{method:'POST',headers:{'Content-Type':'application/json'}});
     const data=await res.json();
     if(data.error)throw new Error(data.error);
-    renderLiveSignals(data);
+    document.getElementById('ls-msg').textContent='resolving token plays...';
+    await renderLiveSignals(data);
     const meta=document.getElementById('live-signal-meta');
     const age=data.cached?Math.round((Date.now()-data.timestamp)/60000)+'min ago':'just now';
-    meta.textContent='scanned '+safe(String(data.sourceCount||0))+' signals ('+safe(String(data.headlineCount||0))+' headlines + '+safe(String(data.redditCount||0))+' reddit posts) · '+age;
+    meta.textContent='scanned '+safe(String(data.sourceCount||0))+' signals · '+age+' · refreshes every 2h';
   }catch(e){
-    document.getElementById('ls-results').style.display='block';
     document.getElementById('ls-results').innerHTML='<p class="err" style="font-family:var(--mono);font-size:12px;padding:12px 0">error: '+safe(e.message)+'</p>';
+    document.getElementById('ls-results').style.display='block';
   }
   document.getElementById('ls-loading').classList.remove('on');
   btn.disabled=false;btn.textContent='scan live signals →';
 }
  
-function renderLiveSignals(data){
+async function lookupTokenCA(ticker, name) {
+  try {
+    // search by ticker first, fall back to name
+    const query = ticker || name;
+    const r = await fetch('https://api.dexscreener.com/latest/dex/search?q=' + encodeURIComponent(query));
+    const d = await r.json();
+    if (!d.pairs || d.pairs.length === 0) return null;
+    // filter for exact symbol match, pick highest liquidity
+    const sym = (ticker || '').toLowerCase();
+    const filtered = d.pairs.filter(p => (p.baseToken?.symbol || '').toLowerCase() === sym);
+    const pool = filtered.length > 0 ? filtered : d.pairs;
+    const best = pool.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0))[0];
+    if (!best || !best.baseToken?.address) return null;
+    return {
+      ca: best.baseToken.address,
+      chain: best.chainId || '',
+      liq: best.liquidity?.usd || 0,
+      price: best.priceUsd || '—',
+    };
+  } catch { return null; }
+}
+ 
+async function renderLiveSignals(data){
   const container=document.getElementById('ls-results');
   container.innerHTML='';
   const narratives=data.narratives||[];
-  if(narratives.length===0){container.innerHTML='<p style="font-family:var(--mono);font-size:12px;color:var(--ink3);padding:12px 0">no strong narratives detected in current headlines</p>';container.style.display='block';return;}
+  if(narratives.length===0){
+    container.innerHTML='<p style="font-family:var(--mono);font-size:12px;color:var(--ink3);padding:12px 0">no strong narratives detected in current headlines</p>';
+    container.style.display='block';return;
+  }
+ 
+  // resolve CAs for all plays upfront in parallel
+  const allPlays = [];
+  narratives.slice(0,5).forEach((n,ni) => {
+    (n.plays||[]).forEach((p,pi) => allPlays.push({ni, pi, ticker: p.ticker, name: p.token_name}));
+  });
+  const caResults = await Promise.all(allPlays.map(p => lookupTokenCA(p.ticker, p.name)));
+  const caMap = {};
+  allPlays.forEach((p, i) => { caMap[`${p.ni}_${p.pi}`] = caResults[i]; });
+ 
   narratives.slice(0,5).forEach((n,i)=>{
     const vel=(n.velocity||'steady').toLowerCase();
     const velClass=vel.includes('accel')?'ls-accelerating':vel.includes('cool')?'ls-cooling':'ls-steady';
-    const velLabel=vel.includes('accel')?'accelerating':vel.includes('cool')?'cooling':'steady';
+    const velLabel=vel.includes('accel')?'↑ accelerating':vel.includes('cool')?'↓ cooling':'→ steady';
     const sig=Math.min(10,Math.max(1,parseInt(n.signal_strength)||5));
     const evidence=Array.isArray(n.evidence)?n.evidence:(typeof n.evidence==='string'?[n.evidence]:[]);
+    const plays=n.plays||[];
+ 
     let html='<div class="ls-card" style="animation-delay:'+(i*0.06)+'s">';
+    // header
     html+='<div class="ls-card-top">';
-    html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="ls-name">'+safe(n.name)+'</span>';
-    html+='<span class="ls-badge '+(n.cycle_stage?.includes('early')?'ls-accelerating':n.cycle_stage?.includes('peak')||n.cycle_stage?.includes('late')?'ls-cooling':'ls-steady')+'">'+safe(n.cycle_stage||'')+'</span></div>';
+    html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+    html+='<span class="ls-name">'+safe(n.name)+'</span>';
+    html+='<span class="ls-badge '+(n.cycle_stage?.includes('early')?'ls-accelerating':n.cycle_stage?.includes('peak')||n.cycle_stage?.includes('late')?'ls-cooling':'ls-steady')+'">'+safe(n.cycle_stage||'')+'</span>';
+    html+='</div>';
     html+='<span class="ls-badge '+velClass+'">'+velLabel+'</span>';
     html+='</div>';
+ 
+    // summary
     html+='<p class="ls-summary">'+safe(n.summary)+'</p>';
-    html+='<div class="ls-signal-bar"><span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">SIGNAL</span><div class="ls-signal-dots">';
+ 
+    // signal strength
+    html+='<div class="ls-signal-bar"><span style="font-family:var(--mono);font-size:9px;color:var(--ink3);margin-right:4px">SIGNAL</span><div class="ls-signal-dots">';
     for(let j=0;j<10;j++)html+='<div class="ls-dot'+(j<sig?' on':'')+'"></div>';
-    html+='</div><span style="font-family:var(--mono);font-size:10px;color:var(--ink2)">'+(sig)+'/10</span></div>';
+    html+='</div><span style="font-family:var(--mono);font-size:10px;color:var(--ink2);margin-left:6px">'+sig+'/10</span></div>';
+ 
+    // why now
     if(n.why_now)html+='<div class="ls-why-now">⚡ '+safe(n.why_now)+'</div>';
+ 
+    // evidence
     if(evidence.length>0){
-      html+='<div class="ls-evidence"><div class="ls-evidence-lbl">EVIDENCE FROM HEADLINES</div>';
-      evidence.forEach(e=>{ html+='<div class="ls-evidence-item">· '+safe(e)+'</div>'; });
+      html+='<div class="ls-evidence"><div class="ls-evidence-lbl">FROM THE HEADLINES</div>';
+      evidence.forEach(e=>{html+='<div class="ls-evidence-item">· '+safe(String(e))+'</div>';});
       html+='</div>';
     }
-    if(n.tradeable)html+='<span class="ls-tradeable">'+(n.tradeable==='yes'?'✓ tradeable play':'no clear trade')+'</span>';
+ 
+    // plays with CAs
+    if(plays.length>0){
+      html+='<div style="margin-top:12px"><div style="font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:8px">HOW TO PLAY THIS NARRATIVE</div>';
+      plays.forEach((p,pi)=>{
+        const caInfo=caMap[`${i}_${pi}`];
+        html+='<div style="background:var(--bg3);padding:10px 12px;margin-bottom:4px;border-left:2px solid '+(caInfo?'var(--accent)':'var(--border-strong)')+'">';
+        html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px">';
+        html+='<span style="font-size:13px;font-weight:700">'+safe(p.token_name||'')+'</span>';
+        html+='<span style="font-family:var(--mono);font-size:11px;color:var(--accent)">$'+safe(p.ticker||'')+'</span>';
+        html+='</div>';
+        html+='<div style="font-size:12px;color:var(--ink3);line-height:1.5;margin-bottom:6px">'+safe(p.reason||'')+'</div>';
+        if(caInfo&&caInfo.ca){
+          html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+          html+='<span style="font-family:var(--mono);font-size:9px;color:var(--ink3);background:var(--bg2);padding:3px 8px;border:1px solid var(--border);word-break:break-all">'+safe(caInfo.ca)+'</span>';
+          html+='<span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">'+safe(caInfo.chain.toUpperCase())+'</span>';
+          html+='<button onclick="copyAndAnalyse(\''+safe(caInfo.ca)+'\')" style="font-family:var(--mono);font-size:9px;background:var(--accent);color:#000;border:none;padding:3px 8px;cursor:pointer;font-weight:500">analyse →</button>';
+          html+='</div>';
+        }else{
+          html+='<div style="font-family:var(--mono);font-size:9px;color:var(--ink3)">CA not found on DEXScreener — search manually</div>';
+        }
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+ 
     html+='</div>';
     container.innerHTML+=html;
   });
