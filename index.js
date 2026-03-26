@@ -217,31 +217,154 @@ const RUG_HALL_OF_FAME = [
   { name: 'Safemoon', symbol: 'SFM', year: '2021', chain: 'BSC', peak_mcap: '$6B', loss: '99%', cause: 'Misleading tokenomics and developer exit', narrative: 'Promised to go to the moon with a 10% tax on transactions — half burned, half to liquidity. Went viral on Reddit and TikTok. CTO was later charged by SEC for fraud and diverting funds.', warning_signs: 'High transaction taxes benefit early holders and developers disproportionately. No clear product. Viral social media growth without fundamental backing. Celebrity and influencer promotion. CTO John Karony later charged with fraud.', lesson: 'High transaction taxes are not tokenomics they are extraction mechanisms. Viral tokens with no product almost never deliver. SEC charges follow crypto fraud — anonymous teams with funds are not untouchable.' },
 ];
  
+// ── RSS + REDDIT + TRENDS SCRAPER ────────────────────────────
+const RSS_FEEDS = [
+  { name: 'CoinDesk', url: 'https://www.coindesk.com/arc/outboundfeeds/rss/' },
+  { name: 'The Block', url: 'https://www.theblock.co/rss.xml' },
+  { name: 'Decrypt', url: 'https://decrypt.co/feed' },
+  { name: 'Blockworks', url: 'https://blockworks.co/feed' },
+  { name: 'CoinTelegraph', url: 'https://cointelegraph.com/rss' },
+];
+ 
+const REDDIT_SUBS = ['CryptoCurrency', 'ethereum', 'solana', 'defi', 'ethfinance'];
+ 
+async function fetchRSS(feed) {
+  try {
+    const res = await fetch(feed.url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CTpulse/1.0)' },
+      signal: AbortSignal.timeout(5000)
+    });
+    const text = await res.text();
+    // extract titles and descriptions from RSS XML
+    const items = [];
+    const itemRegex = /<item[^>]*>([\s\S]*?)<\/item>/gi;
+    let match;
+    while ((match = itemRegex.exec(text)) !== null && items.length < 15) {
+      const block = match[1];
+      const title = (block.match(/<title[^>]*><!\[CDATA\[(.*?)\]\]><\/title>/i) ||
+                     block.match(/<title[^>]*>(.*?)<\/title>/i) || [])[1] || '';
+      const desc = (block.match(/<description[^>]*><!\[CDATA\[(.*?)\]\]><\/description>/i) ||
+                    block.match(/<description[^>]*>(.*?)<\/description>/i) || [])[1] || '';
+      const cleaned = (title + ' ' + desc).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+      if (cleaned.length > 20) items.push(cleaned);
+    }
+    return { source: feed.name, items };
+  } catch { return { source: feed.name, items: [] }; }
+}
+ 
+async function fetchReddit(sub) {
+  try {
+    const res = await fetch(`https://www.reddit.com/r/${sub}/hot.json?limit=15`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; CTpulse/1.0)' },
+      signal: AbortSignal.timeout(5000)
+    });
+    const data = await res.json();
+    const posts = (data?.data?.children || []).map(p => ({
+      title: p.data?.title || '',
+      score: p.data?.score || 0,
+      comments: p.data?.num_comments || 0,
+    })).filter(p => p.title.length > 10);
+    return { sub, posts };
+  } catch { return { sub, items: [] }; }
+}
+ 
+async function fetchGoogleTrends(keywords) {
+  // use Google Trends RSS which is free and requires no API key
+  const results = {};
+  const promises = keywords.map(async kw => {
+    try {
+      const encoded = encodeURIComponent(kw);
+      const res = await fetch(
+        `https://trends.google.com/trends/trendingsearches/daily/rss?geo=US`,
+        { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(4000) }
+      );
+      const text = await res.text();
+      const titles = [];
+      const titleRegex = /<title><!\[CDATA\[(.*?)\]\]><\/title>/gi;
+      let m;
+      while ((m = titleRegex.exec(text)) !== null) titles.push(m[1].toLowerCase());
+      const matched = titles.filter(t => t.includes(kw.toLowerCase()));
+      results[kw] = matched.length;
+    } catch { results[kw] = 0; }
+  });
+  await Promise.all(promises);
+  return results;
+}
+ 
+async function getTrendingNarratives() {
+  // fetch all sources in parallel with timeout
+  const [rssResults, redditResults] = await Promise.all([
+    Promise.all(RSS_FEEDS.map(f => fetchRSS(f))),
+    Promise.all(REDDIT_SUBS.map(s => fetchReddit(s))),
+  ]);
+ 
+  // compile all headlines
+  const headlines = [];
+  rssResults.forEach(r => {
+    r.items.forEach(item => headlines.push(`[${r.source}] ${item}`));
+  });
+ 
+  // compile reddit posts sorted by score
+  const redditPosts = [];
+  redditResults.forEach(r => {
+    (r.posts || []).forEach(p => {
+      if (p.score > 50) redditPosts.push(`[r/${r.sub} +${p.score}] ${p.title}`);
+    });
+  });
+  redditPosts.sort((a, b) => {
+    const scoreA = parseInt(a.match(/\+(\d+)/)?.[1] || 0);
+    const scoreB = parseInt(b.match(/\+(\d+)/)?.[1] || 0);
+    return scoreB - scoreA;
+  });
+ 
+  const topReddit = redditPosts.slice(0, 20);
+  const allContent = [...headlines, ...topReddit];
+ 
+  if (allContent.length < 5) throw new Error('insufficient data from sources');
+ 
+  // send to Claude to identify narrative clusters
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const prompt = `Today is ${today}. You are a crypto narrative analyst. Analyze these real headlines and Reddit posts from the last 24-48 hours and identify the TOP 5 emerging or accelerating crypto narratives. A narrative is an IDEA or THEME spreading through CT — not just a coin. Examples: "AI agents that hold wallets", "Bitcoin as corporate treasury reserve", "RWA tokenization going mainstream". Return ONLY a valid JSON array, no markdown, no code blocks. Each narrative object has: name (short punchy name), summary (2 sentences max, no apostrophes), signal_strength (1-10, based on how many sources mention it), velocity (accelerating/steady/cooling — is this picking up or slowing down), evidence (specific headlines or posts that confirm this narrative is real, max 3, no apostrophes), why_now (what triggered this narrative RIGHT NOW, no apostrophes), tradeable (yes/no — is there a clear way to position for this), cycle_stage (early/mid-cycle/peak hype/late cooling). Sort by signal_strength descending. Only include narratives with genuine signal from the data — do not invent narratives not present in the content. HEADLINES AND POSTS:\n${allContent.slice(0, 60).join('\n')}`;
+ 
+  const data = await callClaude({ model: HAIKU, max_tokens: 2500, messages: [{ role: 'user', content: prompt }] });
+  const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+  const cleaned = txt.replace(/```json/g, '').replace(/```/g, '').trim();
+  const match = cleaned.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error('No narratives returned');
+  const narratives = JSON.parse(match[0]);
+  return { narratives, sourceCount: allContent.length, headlineCount: headlines.length, redditCount: topReddit.length };
+}
+ 
 // ── API ROUTES ────────────────────────────────────────────────
-app.post('/api/analyse', rateLimit, async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt || typeof prompt !== 'string') return res.status(400).json({ error: 'missing prompt' });
-  if (prompt.length > 4000) return res.status(400).json({ error: 'prompt too long' });
-  try {
-    const data = await callClaude({ model: HAIKU, max_tokens: 800, messages: [{ role: 'user', content: prompt }] });
-    const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    res.json({ text: txt });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-app.post('/api/investigate', rateLimit, async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt || typeof prompt !== 'string') return res.status(400).json({ error: 'missing prompt' });
-  if (prompt.length > 6000) return res.status(400).json({ error: 'prompt too long' });
-  try {
-    const data = await callClaude({ model: HAIKU, max_tokens: 1500, temperature: 0, messages: [{ role: 'user', content: prompt }] });
-    const txt = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    res.json({ text: txt });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+app.get('/api/key', rateLimit, (req, res) => {
+  const origin = req.headers.referer || req.headers.origin || '';
+  if (!origin.includes('ct-pulse.vercel.app') && !origin.includes('localhost')) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  res.json({ key: ANTHROPIC_API_KEY });
 });
  
 app.get('/api/rugfame', rateLimit, (req, res) => {
   res.json({ rugs: RUG_HALL_OF_FAME });
+});
+ 
+app.post('/api/trending-narratives', rateLimit, async (req, res) => {
+  try {
+    const CACHE_KEY = 'ct_trending_narratives_v1';
+    const cached = await cacheGet(CACHE_KEY);
+    if (cached && cached.narratives && cached.timestamp) {
+      const age = Date.now() - cached.timestamp;
+      if (age < 2 * 60 * 60 * 1000) { // 2h cache — fresher than static narratives
+        return res.json({ ...cached, cached: true });
+      }
+    }
+    const result = await getTrendingNarratives();
+    const payload = { ...result, timestamp: Date.now() };
+    await cacheSet(CACHE_KEY, payload, 2 * 60 * 60);
+    res.json({ ...payload, cached: false });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
  
 app.post('/api/onchain', rateLimit, async (req, res) => {
@@ -259,7 +382,6 @@ app.post('/api/onchain', rateLimit, async (req, res) => {
 app.post('/api/pairanalysis', rateLimit, async (req, res) => {
   const { pairs } = req.body;
   if (!pairs || !Array.isArray(pairs)) return res.status(400).json({ error: 'missing pairs array' });
- if (pairs.length > 100) return res.status(400).json({ error: 'too many pairs' });
   try { res.json(analysePairs(pairs)); }
   catch (e) { res.status(500).json({ error: e.message }); }
 });
