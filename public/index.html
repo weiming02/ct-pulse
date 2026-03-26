@@ -155,7 +155,24 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .empty{padding:48px 0;text-align:center}
 .empty p{font-family:var(--mono);font-size:12px;color:var(--ink3);margin-bottom:5px}
 .err{color:var(--red)}
-/* COMPARE */
+/* LIVE SIGNALS */
+.ls-card{background:var(--bg2);border:1px solid var(--border);padding:16px 18px;margin-bottom:2px;animation:up 0.3s ease both}
+.ls-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.ls-name{font-size:15px;font-weight:700;letter-spacing:-0.01em}
+.ls-badge{font-family:var(--mono);font-size:10px;padding:2px 8px;border:1px solid}
+.ls-accelerating{color:var(--green);border-color:rgba(57,255,106,0.3);background:var(--green-bg)}
+.ls-steady{color:var(--amber);border-color:rgba(255,170,0,0.3);background:var(--amber-bg)}
+.ls-cooling{color:var(--red);border-color:rgba(255,68,68,0.3);background:var(--red-bg)}
+.ls-summary{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:10px}
+.ls-signal-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ls-signal-dots{display:flex;gap:3px}
+.ls-dot{width:8px;height:8px;background:var(--accent);opacity:0.15;border-radius:1px}
+.ls-dot.on{opacity:1}
+.ls-evidence{margin-top:8px;padding:8px 10px;background:var(--bg3);border-left:2px solid var(--border-strong)}
+.ls-evidence-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.08em;margin-bottom:4px}
+.ls-evidence-item{font-size:11px;color:var(--ink3);line-height:1.5;margin-bottom:2px}
+.ls-why-now{font-family:var(--mono);font-size:10px;color:var(--amber);margin-top:6px;line-height:1.5}
+.ls-tradeable{font-family:var(--mono);font-size:9px;padding:2px 7px;border:1px solid var(--border-strong);color:var(--ink3);margin-top:4px;display:inline-block}
 .cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:2px}
 .cmp-side{background:var(--bg2);border:1px solid var(--border-strong);padding:16px}
 .cmp-side-lbl{font-family:var(--mono);font-size:9px;color:var(--ink3);letter-spacing:0.1em;margin-bottom:10px}
@@ -321,6 +338,20 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
  
 <!-- NARRATIVES -->
 <div id="pane-n">
+  <!-- LIVE SIGNALS SECTION -->
+  <div class="sl">live signals — from crypto media + reddit right now</div>
+  <div style="background:var(--bg2);border:1px solid var(--border-strong);padding:16px 20px;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.5">real headlines from CoinDesk, The Block, Decrypt, Blockworks, CoinTelegraph + Reddit hot posts — Claude identifies which narratives are actually gaining momentum right now</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px" id="live-signal-meta">refreshes every 2h · sources: 5 media outlets + 5 subreddits</div>
+    </div>
+    <button class="ca-btn" id="live-signal-btn" onclick="loadLiveSignals()" style="padding:10px 20px;font-size:11px;white-space:nowrap">scan live signals →</button>
+  </div>
+  <div class="loading" id="ls-loading" style="padding:32px 0"><div class="ldots"><span></span><span></span><span></span></div><p id="ls-msg">fetching headlines...</p></div>
+  <div id="ls-results" style="display:none;margin-bottom:28px"></div>
+ 
+  <!-- AI NARRATIVES SECTION -->
+  <div class="sl" style="margin-top:8px">ai narrative analysis</div>
   <button class="big-btn" id="narrative-btn" onclick="loadNarratives()"><div class="btn-pulse" id="btn-pulse"></div>scan today's crypto narratives</button>
   <div class="loading" id="n-loading"><div class="ldots"><span></span><span></span><span></span></div><p id="n-msg">scanning...</p></div>
   <div id="n-results" style="display:none"><div class="sl">top narratives right now</div><div class="nlist" id="nlist"></div></div>
@@ -437,22 +468,29 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
 <footer>
   <p>CT Pulse · powered by Claude + DEXScreener + Etherscan + Solscan</p>
   <p>not financial advice · dyor · degens only</p>
-  <a href="https://x.com/xiaomingishere" target="_blank" rel="noopener" ...>feedback / feature request →</a>
 </footer>
+</div>
  
 <script>
 let charts={'1h':null,'4h':null};
 let candles={'1h':[],'4h':[]};
 let levels={'1h':{support:[],resistance:[]},'4h':{support:[],resistance:[]}};
 let currentPair=null;
-
+let cachedApiKey=null;
  
 function safe(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('ctpulse_theme',document.body.classList.contains('light')?'light':'dark');}
 const savedTheme=localStorage.getItem('ctpulse_theme');
 if(savedTheme==='light')document.body.classList.add('light');
  
-
+async function getApiKey(){
+  if(cachedApiKey)return cachedApiKey;
+  const res=await fetch('/api/key');
+  const data=await res.json();
+  if(data.error)throw new Error('Could not get API key');
+  cachedApiKey=data.key;
+  return cachedApiKey;
+}
  
 const MSGS_N=['scanning for emerging tech narratives...','finding the real signal...','separating alpha from noise...','checking what builders are shipping...'];
 const MSGS_CA=['fetching token data from DEXScreener...','pulling 1H candles...','pulling 4H candles...','sending to AI analyst...','identifying formations + entry zones...'];
@@ -500,7 +538,8 @@ function renderNarratives(data){
     const fs=Math.min(10,Math.max(0,parseInt(n.fundamentals_score)%11));
     const el=document.createElement('div');el.className='ncard';el.style.animationDelay=(i*0.07)+'s';el.dataset.i=i;
     // token chips for narrative mapper
-    const chipsHtml='<div class="token-chips" id="chips-'+i+'"><span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">loading tokens...</span></div>';
+    const chips=getTokensForNarrative(n.name,n.summary);
+    const chipsHtml=chips.length>0?'<div class="token-chips">'+chips.map(c=>'<div class="token-chip" onclick="copyAndAnalyse(\''+c.ca+'\')">'+safe(c.name)+'</div>').join('')+'</div>':'';
     el.innerHTML='<div class="ncard-main" onclick="toggleN('+i+')">'
       +'<div class="ncard-num">'+String(i+1).padStart(2,'0')+'</div>'
       +'<div class="ncard-body">'
@@ -518,54 +557,33 @@ function renderNarratives(data){
       +'<div><div class="dblock-lbl">VERDICT</div><div class="dblock-txt">'+safe(n.verdict)+'</div></div>'
       +'</div></div>';
     list.appendChild(el);
-    loadTokenChips(n, el);
   });
   document.getElementById('n-results').style.display='block';
 }
  
 // ── NARRATIVE TOKEN MAPPER ────────────────────────────────────
-const narrativeTokenCache={};
-
-async function searchTokenForNarrative(keyword){
-  if(narrativeTokenCache[keyword])return narrativeTokenCache[keyword];
-  try{
-    const r=await fetch('https://api.dexscreener.com/latest/dex/search?q='+encodeURIComponent(keyword));
-    const d=await r.json();
-    if(!d.pairs||d.pairs.length===0)return null;
-    // filter to pairs where the base token symbol or name closely matches keyword
-    const filtered=d.pairs.filter(p=>{
-      const sym=(p.baseToken?.symbol||'').toLowerCase();
-      const nm=(p.baseToken?.name||'').toLowerCase();
-      const kw=keyword.toLowerCase();
-      return sym===kw||nm===kw||sym.startsWith(kw)||nm.startsWith(kw);
-    });
-    const pool=filtered.length>0?filtered:d.pairs;
-    // pick highest liquidity
-    const best=pool.sort((a,b)=>(b.liquidity?.usd||0)-(a.liquidity?.usd||0))[0];
-    const result={name:'$'+(best.baseToken?.symbol||keyword),ca:best.baseToken?.address||'',chain:best.chainId||'',liq:best.liquidity?.usd||0};
-    narrativeTokenCache[keyword]=result;
-    return result;
-  }catch{return null;}
+const NARRATIVE_TOKENS={
+  'virtuals':[{name:'VIRTUAL',ca:'0x44ff8620b8cA30902395A7bD3F2407e1A091BF73'},{name:'AGENT',ca:'0x0f3D8a38D4C74afBebc2c42695642f0e3acb15D3'}],
+  'ai16z':[{name:'AI16Z',ca:'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC'}],
+  'elizaos':[{name:'ELIZA',ca:'5voS9evDjxF589WuEub5i4ti7FWQmZCsAsyD5ucbuRqM'}],
+  'aixbt':[{name:'AIXBT',ca:'0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825'}],
+  'pepe':[{name:'PEPE',ca:'0x6982508145454Ce325dDbE47a25d4ec3d2311933'}],
+  'bonk':[{name:'BONK',ca:'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263'}],
+  'wif':[{name:'WIF',ca:'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'}],
+  'brett':[{name:'BRETT',ca:'0x532f27101965dd16442E59d40670FaF5eBB142E4'}],
+  'mog':[{name:'MOG',ca:'0xaaeE1A9723aaDB7afA2810263653A34bA2C21C7a'}],
+  'popcat':[{name:'POPCAT',ca:'7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr'}],
+};
+ 
+function getTokensForNarrative(name,summary){
+  const text=(name+' '+summary).toLowerCase();
+  const results=[];
+  for(const [key,tokens] of Object.entries(NARRATIVE_TOKENS)){
+    if(text.includes(key))results.push(...tokens);
+  }
+  return results.slice(0,4);
 }
-
-function extractKeywords(name,summary){
-  // pull out project names from narrative name and summary
-  const known=['Virtuals','ai16z','ElizaOS','AIXBT','Zerebro','Arc','Griffain','Fartcoin','Goat','Meme','Bonk','WIF','Pepe','Brett','Mog','Popcat','Render','Akash','io.net','Bittensor','Grass','Nosana'];
-  const text=name+' '+summary;
-  return known.filter(k=>text.toLowerCase().includes(k.toLowerCase())).slice(0,3);
-}
-
-async function loadTokenChips(narrative,cardEl){
-  const keywords=extractKeywords(narrative.name,narrative.summary);
-  if(keywords.length===0)return;
-  const results=await Promise.all(keywords.map(k=>searchTokenForNarrative(k)));
-  const valid=results.filter(r=>r&&r.ca);
-  if(valid.length===0)return;
-  const chipsDiv=cardEl.querySelector('.token-chips');
-  if(!chipsDiv)return;
-  chipsDiv.innerHTML=valid.map(t=>'<div class="token-chip" onclick="copyAndAnalyse(\''+safe(t.ca)+'\')">'+safe(t.name)+'<span style="font-family:var(--mono);font-size:8px;color:var(--ink3);margin-left:4px">'+safe(t.chain.toUpperCase())+'</span></div>').join('');
-}
-
+ 
 function copyAndAnalyse(ca){
   switchTab('ca');
   document.getElementById('ca-input').value=ca;
@@ -683,12 +701,12 @@ async function analyseCA(){
     const s1h=fmtLvls(levels['1h']);const s4h=fmtLvls(levels['4h']);
     const c1h=candles['1h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
     const c4h=candles['4h'].slice(-15).map(c=>+Number(c.close).toFixed(10));
-    
+    const apiKey=await getApiKey();
     const prompt='Crypto TA analyst. Return ONLY a raw JSON object, no markdown, no code blocks. Use only double quotes. No apostrophes anywhere. No newlines inside string values. Entry zones must always be BELOW current price for bearish bias, ABOVE for bullish. Current price is '+parseFloat(pair.priceUsd).toFixed(10)+'. TOKEN: '+tokenData.name+' ('+tokenData.symbol+') CHAIN: '+tokenData.chain+' PRICE: '+parseFloat(pair.priceUsd).toFixed(10)+' MCAP: '+tokenData.marketCap+' 24H: '+tokenData.change24h+'% LIQ: '+tokenData.liquidity+' AGE: '+tokenData.age+' 1H_SUP: '+s1h.support.join(',')+' 1H_RES: '+s1h.resistance.join(',')+'  4H_SUP: '+s4h.support.join(',')+' 4H_RES: '+s4h.resistance.join(',')+'  1H_CLOSES: '+c1h.join(',')+' 4H_CLOSES: '+c4h.join(',')+' Return this JSON: {"formation":"name","bias":"bullish or bearish or neutral","pattern_description":"4H structure and 1H timing and meaning","momentum":"pressure and conviction","key_levels":"levels with prices and note the MCAP of '+tokenData.marketCap+' for context on liquidity risk","volume_story":"accumulation or distribution relative to the '+tokenData.marketCap+' marketcap","entry_zones":[{"label":"ideal entry","price":0,"timeframe":"1H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for position sizing here"},{"label":"safe entry","price":0,"timeframe":"4H","reasoning":"why this level and what the '+tokenData.marketCap+' MCAP means for liquidity risk here"}],"invalidation":"price and meaning","verdict":"honest take including whether the '+tokenData.marketCap+' MCAP is appropriate risk for this setup"}';
-    const analysisRes=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const analysisRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,messages:[{role:'user',content:prompt}]})});
     const analysisData=await analysisRes.json();
-    if(!analysisRes.ok)throw new Error(analysisData.error||'API error');
-    const rawTxt=analysisData.text||'';
+    if(!analysisRes.ok)throw new Error(analysisData.error?.message||'API error');
+    const rawTxt=analysisData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
     const jsonMatch=rawTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
     if(!jsonMatch)throw new Error('No analysis returned');
     let analysis;
@@ -779,11 +797,11 @@ async function compareTokens(){
     document.getElementById('cmp-table').innerHTML=tableHtml;
     // AI verdict
     document.getElementById('cmp-msg').textContent='asking AI for verdict...';
-    
+    const apiKey=await getApiKey();
     const cmpPrompt='You are a crypto analyst comparing two tokens. Return ONLY a raw JSON object, no markdown, no code blocks, only double quotes, no apostrophes, no newlines inside strings. TOKEN_A: '+nameA+' MCAP:'+fmt(mcapA)+' LIQ:'+fmt(totalLiqA)+' VOL:'+fmt(totalVolA)+' 24H:'+fmtPct(chgA)+' AGE:'+Math.round(ageA)+'d CHAIN:'+pA.chainId+' TOKEN_B: '+nameB+' MCAP:'+fmt(mcapB)+' LIQ:'+fmt(totalLiqB)+' VOL:'+fmt(totalVolB)+' 24H:'+fmtPct(chgB)+' AGE:'+Math.round(ageB)+'d CHAIN:'+pB.chainId+' Return: {"verdict":"3-4 sentence honest comparison — which is the better risk-reward play right now and why, citing specific numbers. Be direct about which one you would rather be in if forced to choose."}';
-    const cmpRes=await fetch('/api/analyse',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:cmpPrompt})});
+    const cmpRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,temperature:0,messages:[{role:'user',content:cmpPrompt}]})});
     const cmpData=await cmpRes.json();
-    const cmpTxt=cmpData.text||'';
+    const cmpTxt=cmpData.content?.filter(b=>b.type==='text').map(b=>b.text).join('')||'';
     const cmpMatch=cmpTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
     let verdict='—';
     if(cmpMatch){try{verdict=JSON.parse(cmpMatch[0]).verdict||'—';}catch(e){verdict='—';}}
@@ -922,7 +940,64 @@ function renderPairAnalysis(pa){
   panel.style.display='block';
 }
  
-// ── INVESTIGATE ───────────────────────────────────────────────
+// ── LIVE SIGNALS ──────────────────────────────────────────────
+async function loadLiveSignals(){
+  const btn=document.getElementById('live-signal-btn');
+  btn.disabled=true;btn.textContent='scanning...';
+  document.getElementById('ls-loading').classList.add('on');
+  document.getElementById('ls-msg').textContent='fetching headlines from crypto media + reddit...';
+  document.getElementById('ls-results').style.display='none';
+  try{
+    const res=await fetch('/api/trending-narratives',{method:'POST',headers:{'Content-Type':'application/json'}});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    renderLiveSignals(data);
+    const meta=document.getElementById('live-signal-meta');
+    const age=data.cached?Math.round((Date.now()-data.timestamp)/60000)+'min ago':'just now';
+    meta.textContent='scanned '+safe(String(data.sourceCount||0))+' signals ('+safe(String(data.headlineCount||0))+' headlines + '+safe(String(data.redditCount||0))+' reddit posts) · '+age;
+  }catch(e){
+    document.getElementById('ls-results').style.display='block';
+    document.getElementById('ls-results').innerHTML='<p class="err" style="font-family:var(--mono);font-size:12px;padding:12px 0">error: '+safe(e.message)+'</p>';
+  }
+  document.getElementById('ls-loading').classList.remove('on');
+  btn.disabled=false;btn.textContent='scan live signals →';
+}
+ 
+function renderLiveSignals(data){
+  const container=document.getElementById('ls-results');
+  container.innerHTML='';
+  const narratives=data.narratives||[];
+  if(narratives.length===0){container.innerHTML='<p style="font-family:var(--mono);font-size:12px;color:var(--ink3);padding:12px 0">no strong narratives detected in current headlines</p>';container.style.display='block';return;}
+  narratives.slice(0,5).forEach((n,i)=>{
+    const vel=(n.velocity||'steady').toLowerCase();
+    const velClass=vel.includes('accel')?'ls-accelerating':vel.includes('cool')?'ls-cooling':'ls-steady';
+    const velLabel=vel.includes('accel')?'accelerating':vel.includes('cool')?'cooling':'steady';
+    const sig=Math.min(10,Math.max(1,parseInt(n.signal_strength)||5));
+    const evidence=Array.isArray(n.evidence)?n.evidence:(typeof n.evidence==='string'?[n.evidence]:[]);
+    let html='<div class="ls-card" style="animation-delay:'+(i*0.06)+'s">';
+    html+='<div class="ls-card-top">';
+    html+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="ls-name">'+safe(n.name)+'</span>';
+    html+='<span class="ls-badge '+(n.cycle_stage?.includes('early')?'ls-accelerating':n.cycle_stage?.includes('peak')||n.cycle_stage?.includes('late')?'ls-cooling':'ls-steady')+'">'+safe(n.cycle_stage||'')+'</span></div>';
+    html+='<span class="ls-badge '+velClass+'">'+velLabel+'</span>';
+    html+='</div>';
+    html+='<p class="ls-summary">'+safe(n.summary)+'</p>';
+    html+='<div class="ls-signal-bar"><span style="font-family:var(--mono);font-size:9px;color:var(--ink3)">SIGNAL</span><div class="ls-signal-dots">';
+    for(let j=0;j<10;j++)html+='<div class="ls-dot'+(j<sig?' on':'')+'"></div>';
+    html+='</div><span style="font-family:var(--mono);font-size:10px;color:var(--ink2)">'+(sig)+'/10</span></div>';
+    if(n.why_now)html+='<div class="ls-why-now">⚡ '+safe(n.why_now)+'</div>';
+    if(evidence.length>0){
+      html+='<div class="ls-evidence"><div class="ls-evidence-lbl">EVIDENCE FROM HEADLINES</div>';
+      evidence.forEach(e=>{ html+='<div class="ls-evidence-item">· '+safe(e)+'</div>'; });
+      html+='</div>';
+    }
+    if(n.tradeable)html+='<span class="ls-tradeable">'+(n.tradeable==='yes'?'✓ tradeable play':'no clear trade')+'</span>';
+    html+='</div>';
+    container.innerHTML+=html;
+  });
+  container.style.display='block';
+}
+ 
+ 
 async function rugCheck(){
   const ca=document.getElementById('rug-input').value.trim();if(!ca)return;
   const btn=document.getElementById('rug-btn');btn.disabled=true;btn.textContent='investigating...';
@@ -995,14 +1070,14 @@ async function rugCheck(){
       if(pairAnalysis.buyPct1h!==null)onchainContext+='1H BUY PRESSURE: '+pairAnalysis.buyPct1h+'%. ';
     }
     document.getElementById('rug-msg').textContent=MSGS_RUG[4];
-    
+    const apiKey=await getApiKey();
     const zachPrompt=isDead
       ?'You are a blockchain forensics investigator. Write a ZachXBT-style post-mortem on this dead token. Cite exact numbers. Return ONLY raw JSON, no markdown, only double quotes, no apostrophes, no newlines inside strings. TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)+' MCAP: '+fmt(mcapUsd)+' CAP TIER: '+capTier+' LIQUIDITY: '+fmt(liqUsd)+' LIQ/MCAP: '+liqToMcap.toFixed(2)+'% PEAK: '+fmtP(maxClose1h)+' CURRENT: '+fmtP(recentClose)+' DRAWDOWN: '+drawdownPct.toFixed(1)+'% VOL 1H: '+fmt(totalVolume1h)+' 6H: '+fmt(totalVolume6h)+' 24H: '+fmt(totalVolume24h)+' VOLUME TREND: '+volTrend.toFixed(0)+'% PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)+' AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' PAIRS: '+numPairs+' '+onchainContext+' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')+' Return JSON: {"threat_score":100,"mode":"postmortem","verdict_title":"5-7 word specific verdict","verdict_summary":"2 sentences citing exact numbers","flags":[{"severity":"red","title":"flag","detail":"exact data"}],"price_forensics":"exact price death description","liquidity_forensics":"how liquidity was drained","volume_forensics":"volume signature before death","wallet_forensics":"what on-chain data reveals","structural_risk":"why this token was vulnerable","cause_of_death":"single precise cause","narrative_used":"what CT hype was used","warning_signs":"specific data points visible before collapse","timeline":[{"event":"title","detail":"what happened","severity":"red or amber"}],"lessons":"3 specific lessons","investigator_verdict":"3-sentence final verdict"}'
       :'You are a blockchain forensics investigator. Investigate this LIVE token. Be specific. Do NOT flag low liq/mcap for large caps above $100M. Return ONLY raw JSON, no markdown, only double quotes, no apostrophes, no newlines inside strings. TOKEN: '+(pair.baseToken?.name||'unknown')+' ('+(pair.baseToken?.symbol||'')+') on '+(pair.chainId||'')+' PRICE: '+parseFloat(pair.priceUsd||0).toFixed(10)+' MCAP: '+fmt(mcapUsd)+' CAP TIER: '+capTier+' LIQUIDITY: '+fmt(liqUsd)+' across '+numPairs+' pairs LIQ/MCAP: '+liqToMcap.toFixed(2)+'% ('+liqRiskLabel+') 24H VOL: '+fmt(totalVolume24h)+' VOL/LIQ: '+volToLiq.toFixed(1)+'% PRICE CHANGES: 1H '+fmtPct(chg1h)+' 6H '+fmtPct(chg6h)+' 24H '+fmtPct(chg24h)+' AGE: '+(agedays<1?Math.round(agedays*24)+'h':Math.round(agedays)+'d')+' DRAWDOWN: '+drawdownPct.toFixed(1)+'% VOLUME TREND: '+volTrend.toFixed(0)+'% '+onchainContext+' SUSPICIOUS: '+(volToLiq>300?' vol/liq>300%;':'')+(chg24h>200?' 24H pump>200%;':'')+(chg24h<-60?' 24H dump>60%;':'')+(agedays<7&&mcapUsd>1e6?' <7d old with mcap>$1M;':'')+(onchainData?.mintAuthorityEnabled?' MINT ACTIVE;':'')+(onchainData?.freezeAuthorityEnabled?' FREEZE ACTIVE;':'')+(onchainData?.serialRuggerSignal?' SERIAL DEPLOYER;':'')+(onchainData?.isVerified===false?' UNVERIFIED;':'')+(parseFloat(onchainData?.top10concentration||0)>80?' TOP10 HOLD '+onchainData?.top10concentration+'%;':'')+' LAST 20 x 1H CLOSES: '+closes1h.slice(-20).map(c=>+Number(c).toFixed(10)).join(',')+' LAST 10 x 4H: '+closes4h.slice(-10).map(c=>+Number(c).toFixed(10)).join(',')+' Return JSON: {"threat_score":0,"mode":"livecheck","verdict_title":"5-7 word verdict","verdict_summary":"2 sentences with exact numbers","flags":[{"severity":"red or amber or green","title":"flag","detail":"exact data"}],"price_forensics":"price action analysis","liquidity_forensics":"liquidity health in context of cap tier","volume_forensics":"organic vs manipulated","wallet_forensics":"what on-chain data reveals","structural_risk":"structural vulnerabilities","timeline":[{"event":"title","detail":"data","severity":"red or amber or green"}],"investigator_verdict":"3-sentence threat assessment"}';
-   const zachRes=await fetch('/api/investigate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:zachPrompt})});
+    const zachRes=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1500,temperature:0,messages:[{role:'user',content:zachPrompt}]})});
     const zachData=await zachRes.json();
-    if(!zachRes.ok)throw new Error(zachData.error||'API error');
-    const zachTxt=zachData.text||'';
+    if(!zachRes.ok)throw new Error(zachData.error?.message||'API error');
+    const zachTxt=zachData.content.filter(b=>b.type==='text').map(b=>b.text).join('');
     const zachMatch=zachTxt.replace(/```json/g,'').replace(/```/g,'').trim().match(/\{[\s\S]*\}/);
     if(!zachMatch)throw new Error('No investigation report returned');
     let report;
@@ -1038,3 +1113,4 @@ async function rugCheck(){
 </script>
 </body>
 </html>
+ 
