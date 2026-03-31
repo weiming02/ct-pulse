@@ -155,6 +155,18 @@ header{padding:36px 0 28px;border-bottom:1px solid var(--border-strong);margin-b
 .empty{padding:48px 0;text-align:center}
 .empty p{font-family:var(--mono);font-size:12px;color:var(--ink3);margin-bottom:5px}
 .err{color:var(--red)}
+/* LEADERBOARD */
+.board-row{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);margin-bottom:2px;animation:up 0.3s ease both;cursor:pointer;transition:border-color 0.15s}
+.board-row:hover{border-color:var(--border-strong)}
+.board-rank{font-family:var(--mono);font-size:18px;font-weight:800;color:var(--ink3);text-align:center}
+.board-rank-1{color:#FFD700}.board-rank-2{color:#C0C0C0}.board-rank-3{color:#CD7F32}
+.board-info{min-width:0}
+.board-name{font-size:14px;font-weight:700;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.board-meta{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:2px}
+.board-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.board-score{font-family:var(--mono);font-size:20px;font-weight:800;line-height:1}
+.board-count{font-family:var(--mono);font-size:9px;color:var(--ink3)}
+.board-score-low{color:var(--green)}.board-score-mid{color:var(--amber)}.board-score-high{color:var(--red)}
 /* LIVE SIGNALS */
 .ls-card{background:var(--bg2);border:1px solid var(--border);padding:16px 18px;margin-bottom:2px;animation:up 0.3s ease both}
 .ls-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
@@ -333,6 +345,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
   <button class="tab" id="tab-ca" onclick="switchTab('ca')">chart analysis</button>
   <button class="tab" id="tab-cmp" onclick="switchTab('cmp')">compare</button>
   <button class="tab" id="tab-rug" onclick="switchTab('rug')">investigate</button>
+  <button class="tab" id="tab-board" onclick="switchTab('board')">🔥 leaderboard</button>
   <button class="tab" id="tab-hof" onclick="switchTab('hof')">rug hall of fame</button>
 </div>
  
@@ -341,7 +354,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
   <!-- LIVE SIGNALS SECTION -->
   <div style="background:var(--bg2);border:1px solid var(--border-strong);padding:16px 20px;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
     <div>
-      <div style="font-size:13px;color:var(--ink2);line-height:1.5">real headlines from CoinDesk, The Block, Decrypt, Blockworks, CoinTelegraph + Reddit hot posts</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:1.5">real headlines from CoinDesk, The Block, Decrypt, Blockworks, CoinTelegraph + Reddit hot posts — Claude identifies which narratives are actually gaining momentum right now</div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:6px" id="live-signal-meta">refreshes every 2h · sources: 5 media outlets + 5 subreddits</div>
     </div>
     <button class="ca-btn" id="live-signal-btn" onclick="loadLiveSignals()" style="padding:10px 20px;font-size:11px;white-space:nowrap">scan live signals →</button>
@@ -450,6 +463,31 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
   <div class="empty" id="rug-empty"><p>paste any contract address to open an investigation.</p><p>live tokens get threat scoring + wallet forensics. dead tokens get full post-mortem.</p></div>
 </div>
  
+<!-- LEADERBOARD -->
+<div id="pane-board" style="display:none">
+  <div class="sl">most investigated tokens this week</div>
+  <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);margin-bottom:20px;line-height:1.7">every time someone runs an investigation on CT Pulse, that token gets logged here anonymously. high investigation count = CT is watching this token closely.</div>
+  <div class="loading" id="board-loading"><div class="ldots"><span></span><span></span><span></span></div><p>loading leaderboard...</p></div>
+  <div id="board-list"></div>
+  <div class="empty" id="board-empty" style="display:none"><p>no investigations logged yet.</p><p>be the first — go investigate a token.</p></div>
+</div>
+ 
+<!-- SHARE CARD MODAL -->
+<div id="share-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border:1px solid var(--border-strong);max-width:520px;width:100%;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:0.1em">SHARE CARD</span>
+      <button onclick="closeShareModal()" style="background:transparent;border:none;color:var(--ink3);cursor:pointer;font-size:18px;line-height:1">×</button>
+    </div>
+    <canvas id="share-canvas" style="width:100%;border:1px solid var(--border)"></canvas>
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button onclick="downloadShareCard()" style="flex:1;font-family:var(--mono);font-size:11px;padding:10px;background:var(--accent);color:#000;border:none;cursor:pointer;font-weight:500">download image</button>
+      <button onclick="shareToX()" style="flex:1;font-family:var(--mono);font-size:11px;padding:10px;background:transparent;color:var(--ink);border:1px solid var(--border-strong);cursor:pointer">share on X →</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:10px;text-align:center">ct-pulse.vercel.app</div>
+  </div>
+</div>
+ 
 <!-- RUG HALL OF FAME -->
 <div id="pane-hof" style="display:none">
   <div class="sl">the biggest rugs in crypto history</div>
@@ -461,7 +499,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--ink3)}
 <footer>
   <p>CT Pulse · powered by Claude + DEXScreener + Etherscan + Solscan</p>
   <p>not financial advice · dyor · degens only</p>
-  <br> <a href="https://x.com/xiaomingishere" target="_blank" rel="noopener" ...>feedback / feature request →</a>
 </footer>
 </div>
  
@@ -497,11 +534,12 @@ function timeAgo(ts){const d=(Date.now()/1000-ts)/86400;if(d<1)return Math.round
 function fmtNum(n){if(!n)return'—';if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Number(n).toFixed(0);}
  
 function switchTab(t){
-  ['n','ca','cmp','rug','hof'].forEach(id=>{
+  ['n','ca','cmp','rug','board','hof'].forEach(id=>{
     document.getElementById('tab-'+id).classList.toggle('active',id===t);
     document.getElementById('pane-'+id).style.display=id===t?'':'none';
   });
   if(t==='hof')loadHallOfFame();
+  if(t==='board')loadLeaderboard();
 }
 function switchChart(tf,btn){document.querySelectorAll('.chart-tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('chart-1h').classList.toggle('active',tf==='1h');document.getElementById('chart-4h').classList.toggle('active',tf==='4h');}
  
@@ -854,7 +892,140 @@ function renderPairAnalysis(pa){
   panel.style.display='block';
 }
  
-// ── LIVE SIGNALS ──────────────────────────────────────────────
+// ── LEADERBOARD ───────────────────────────────────────────────
+let boardLoaded=false;
+async function loadLeaderboard(){
+  if(boardLoaded)return;
+  document.getElementById('board-loading').classList.add('on');
+  try{
+    const res=await fetch('/api/leaderboard');
+    const data=await res.json();
+    renderLeaderboard(data.entries||[]);
+    boardLoaded=true;
+  }catch(e){
+    document.getElementById('board-empty').style.display='block';
+  }
+  document.getElementById('board-loading').classList.remove('on');
+}
+ 
+function renderLeaderboard(entries){
+  const list=document.getElementById('board-list');list.innerHTML='';
+  if(entries.length===0){document.getElementById('board-empty').style.display='block';return;}
+  entries.forEach((e,i)=>{
+    const rank=i+1;
+    const rankClass=rank===1?'board-rank-1':rank===2?'board-rank-2':rank===3?'board-rank-3':'';
+    const scoreClass=e.score>=70?'board-score-high':e.score>=40?'board-score-mid':'board-score-low';
+    const dead=e.isDead?'<span style="font-family:var(--mono);font-size:9px;color:var(--red);border:1px solid rgba(255,68,68,0.4);background:var(--red-bg);padding:1px 5px;margin-left:6px">DEAD</span>':'';
+    const div=document.createElement('div');
+    div.className='board-row';div.style.animationDelay=(i*0.04)+'s';
+    div.onclick=()=>{switchTab('rug');document.getElementById('rug-input').value=e.ca;rugCheck();};
+    div.innerHTML='<div class="board-rank '+rankClass+'">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div>'
+      +'<div class="board-info"><div class="board-name">'+safe(e.name||'unknown')+' <span style="font-family:var(--mono);font-size:11px;color:var(--ink3)">$'+safe(e.symbol||'')+'</span>'+dead+'</div>'
+      +'<div class="board-meta">'+safe((e.chain||'').toUpperCase())+' · '+safe(e.ca?e.ca.slice(0,12)+'...':'')+(e.verdict_title?' · '+safe(e.verdict_title):'')+'</div></div>'
+      +'<div class="board-right"><div class="board-score '+scoreClass+'">'+safe(String(e.score))+'</div><div class="board-count">'+safe(String(e.count))+' investigation'+(e.count>1?'s':'')+'</div></div>';
+    list.appendChild(div);
+  });
+}
+ 
+async function logToLeaderboard(ca, name, symbol, chain, score, verdict_title, isDead){
+  try{
+    await fetch('/api/leaderboard/log',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ca,name,symbol,chain,score,verdict_title,isDead})});
+    boardLoaded=false; // force refresh next time board is opened
+  }catch(e){}
+}
+ 
+// ── SHARE CARD ────────────────────────────────────────────────
+let shareCardData=null;
+ 
+function generateShareCard(tokenName, symbol, chain, score, verdictTitle, verdictSummary, flags, isDead){
+  shareCardData={tokenName,symbol,chain,score,verdictTitle,verdictSummary,flags,isDead};
+  const canvas=document.getElementById('share-canvas');
+  const W=480,H=280;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+ 
+  // background
+  ctx.fillStyle='#0d0d0d';ctx.fillRect(0,0,W,H);
+ 
+  // accent bar top
+  const scoreColor=score>=70?'#ff4444':score>=40?'#ffaa00':'#39ff6a';
+  ctx.fillStyle=scoreColor;ctx.fillRect(0,0,W,4);
+ 
+  // CT Pulse branding
+  ctx.fillStyle='#585850';ctx.font='10px monospace';ctx.fillText('CT PULSE · INVESTIGATION REPORT',24,28);
+ 
+  // token name
+  ctx.fillStyle='#f0ede6';ctx.font='bold 22px sans-serif';
+  ctx.fillText((tokenName||'unknown').toUpperCase(),24,58);
+ 
+  // symbol + chain badges
+  ctx.fillStyle='#585850';ctx.font='11px monospace';
+  ctx.fillText('$'+(symbol||'')+'  ·  '+(chain||'').toUpperCase(),24,78);
+ 
+  // threat score — big
+  ctx.fillStyle=scoreColor;ctx.font='bold 64px monospace';
+  ctx.fillText(String(score),24,156);
+  ctx.fillStyle='#585850';ctx.font='10px monospace';
+  ctx.fillText('THREAT SCORE',24,172);
+ 
+  // mode badge
+  const modeText=isDead?'CASE CLOSED — POST MORTEM':'ACTIVE INVESTIGATION';
+  ctx.fillStyle=isDead?'rgba(255,68,68,0.15)':'rgba(255,170,0,0.15)';
+  ctx.fillRect(120,120,W-144,28);
+  ctx.fillStyle=isDead?'#ff4444':'#ffaa00';
+  ctx.font='10px monospace';ctx.fillText(modeText,130,138);
+ 
+  // verdict title
+  ctx.fillStyle='#f0ede6';ctx.font='bold 14px sans-serif';
+  const vt=verdictTitle||'—';
+  ctx.fillText(vt.length>42?vt.slice(0,42)+'…':vt,120,162);
+ 
+  // top flags
+  const topFlags=(flags||[]).filter(f=>f.severity==='red').slice(0,3);
+  topFlags.forEach((f,i)=>{
+    ctx.fillStyle='rgba(255,68,68,0.08)';ctx.fillRect(120,172+i*26,W-144,22);
+    ctx.fillStyle='#ff4444';ctx.font='9px monospace';ctx.fillText('RED',124,186+i*26);
+    ctx.fillStyle='#a0a090';ctx.font='11px sans-serif';
+    const t=(f.title||'').slice(0,38);
+    ctx.fillText(t,154,186+i*26);
+  });
+ 
+  // bottom bar
+  ctx.fillStyle='#1c1c1c';ctx.fillRect(0,H-36,W,36);
+  ctx.fillStyle='#585850';ctx.font='10px monospace';
+  ctx.fillText('ct-pulse.vercel.app',24,H-14);
+  ctx.fillStyle=scoreColor;ctx.font='10px monospace';
+  ctx.fillText(score>=70?'⚠ HIGH RISK':score>=40?'⚡ SUSPICIOUS':'✓ LOWER RISK',W-130,H-14);
+ 
+  // border
+  ctx.strokeStyle='rgba(240,237,230,0.12)';ctx.lineWidth=1;ctx.strokeRect(0.5,0.5,W-1,H-1);
+ 
+  const modal=document.getElementById('share-modal');
+  modal.style.display='flex';
+}
+ 
+function closeShareModal(){
+  document.getElementById('share-modal').style.display='none';
+}
+ 
+function downloadShareCard(){
+  const canvas=document.getElementById('share-canvas');
+  const name=(shareCardData?.tokenName||'token').replace(/\s+/g,'-').toLowerCase();
+  const a=document.createElement('a');
+  a.download='ctpulse-'+name+'.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+}
+ 
+function shareToX(){
+  const d=shareCardData;
+  if(!d)return;
+  const text=`🔍 CT Pulse Investigation: ${d.tokenName} ($${d.symbol})\n\nThreat Score: ${d.score}/100\n${d.verdictTitle}\n\nvia ct-pulse.vercel.app`;
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank');
+}
+ 
+ 
 async function loadLiveSignals(){
   const btn=document.getElementById('live-signal-btn');
   btn.disabled=true;btn.textContent='scanning...';
@@ -994,6 +1165,7 @@ async function rugCheck(){
   ['rug-score-wrap','rug-metrics','onchain-panel','rug-flags','zach-report'].forEach(id=>document.getElementById(id).classList.remove('on'));
   document.getElementById('pair-analysis-panel').style.display='none';
   document.getElementById('rug-empty').style.display='none';
+  const oldShare=document.getElementById('share-trigger');if(oldShare)oldShare.remove();
   try{
     document.getElementById('rug-msg').textContent=MSGS_RUG[1];
     const dsr=await fetch('https://api.dexscreener.com/latest/dex/tokens/'+ca);
@@ -1096,10 +1268,24 @@ async function rugCheck(){
     if(isDead){document.getElementById('z-cause').textContent=report.cause_of_death||'—';document.getElementById('z-narrative').textContent=report.narrative_used||'—';document.getElementById('z-warnings').textContent=report.warning_signs||'—';document.getElementById('z-lessons').textContent=report.lessons||'—';postmortemSection.style.display='block';}else{postmortemSection.style.display='none';}
     const vstrip=document.getElementById('verdict-strip');document.getElementById('verdict-strip-txt').textContent=report.investigator_verdict||'—';vstrip.className='verdict-strip '+(score>=70?'verdict-strip-guilty':score>=40?'verdict-strip-suspicious':'verdict-strip-innocent');
     document.getElementById('zach-report').classList.add('on');
+ 
+    // log to leaderboard
+    logToLeaderboard(ca, pair.baseToken?.name||'unknown', pair.baseToken?.symbol||'', pair.chainId||'', score, report.verdict_title||'', isDead);
+ 
+    // show share button
+    const existingShare=document.getElementById('share-trigger');
+    if(existingShare)existingShare.remove();
+    const shareBtn=document.createElement('button');
+    shareBtn.id='share-trigger';
+    shareBtn.style.cssText='width:100%;font-family:var(--mono);font-size:12px;padding:14px;background:transparent;color:var(--ink);border:1px solid var(--border-strong);cursor:pointer;margin-top:4px;letter-spacing:0.04em;transition:all 0.15s';
+    shareBtn.textContent='share this investigation →';
+    shareBtn.onmouseover=()=>{shareBtn.style.borderColor='var(--accent)';shareBtn.style.color='var(--accent)';};
+    shareBtn.onmouseout=()=>{shareBtn.style.borderColor='var(--border-strong)';shareBtn.style.color='var(--ink)';};
+    shareBtn.onclick=()=>generateShareCard(pair.baseToken?.name||'unknown',pair.baseToken?.symbol||'',pair.chainId||'',score,report.verdict_title,report.verdict_summary,report.flags||[],isDead);
+    document.getElementById('zach-report').after(shareBtn);
   }catch(e){document.getElementById('rug-empty').style.display='block';document.getElementById('rug-empty').innerHTML='<p class="err">error: '+safe(e.message)+'</p>';}
   document.getElementById('rug-loading').classList.remove('on');btn.disabled=false;btn.textContent='investigate →';
 }
 </script>
 </body>
 </html>
- 
