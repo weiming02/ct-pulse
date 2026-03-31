@@ -44,7 +44,7 @@ async function cacheSet(key, value, ttlSeconds) {
     await fetch(`${UPSTASH_URL}/set/${key}?ex=${ttlSeconds}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(JSON.stringify(value))
+      body: JSON.stringify(value)
     });
   } catch {}
 }
