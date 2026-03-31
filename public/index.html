@@ -932,6 +932,7 @@ async function logToLeaderboard(ca, name, symbol, chain, score, verdict_title, i
     await fetch('/api/leaderboard/log',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({ca,name,symbol,chain,score,verdict_title,isDead})});
     boardLoaded=false; // force refresh next time board is opened
+    loadLeaderboard();
   }catch(e){}
 }
  
