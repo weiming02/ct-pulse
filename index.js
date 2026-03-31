@@ -447,4 +447,5 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
 });
  
 module.exports = app;
+updateLeaderboard();
  
