@@ -348,6 +348,44 @@ app.get('/api/rugfame', rateLimit, (req, res) => {
   res.json({ rugs: RUG_HALL_OF_FAME });
 });
  
+// ── THREAT LEADERBOARD ────────────────────────────────────────
+app.post('/api/leaderboard/log', rateLimit, async (req, res) => {
+  const { ca, name, symbol, chain, score, verdict_title, isDead } = req.body;
+  if (!ca || !name || score === undefined) return res.status(400).json({ error: 'missing fields' });
+  try {
+    const BOARD_KEY = 'ct_leaderboard_v1';
+    const existing = await cacheGet(BOARD_KEY) || {};
+    const entry = existing[ca] || { ca, name, symbol, chain, score: 0, count: 0, verdict_title: '', isDead: false, lastSeen: 0 };
+    // update with latest investigation data
+    entry.name = name;
+    entry.symbol = symbol || entry.symbol;
+    entry.chain = chain || entry.chain;
+    entry.score = score; // always use latest score
+    entry.count = (entry.count || 0) + 1;
+    entry.verdict_title = verdict_title || entry.verdict_title;
+    entry.isDead = isDead || false;
+    entry.lastSeen = Date.now();
+    existing[ca] = entry;
+    // trim to top 100 by count to keep size manageable
+    const entries = Object.values(existing).sort((a, b) => b.count - a.count).slice(0, 100);
+    const trimmed = {};
+    entries.forEach(e => { trimmed[e.ca] = e; });
+    await cacheSet(BOARD_KEY, trimmed, 7 * 24 * 60 * 60); // 7 day TTL
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+ 
+app.get('/api/leaderboard', rateLimit, async (req, res) => {
+  try {
+    const BOARD_KEY = 'ct_leaderboard_v1';
+    const data = await cacheGet(BOARD_KEY) || {};
+    const entries = Object.values(data)
+      .sort((a, b) => b.count - a.count) // sort by most investigated
+      .slice(0, 20);
+    res.json({ entries, updatedAt: Date.now() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+ 
 app.post('/api/trending-narratives', rateLimit, async (req, res) => {
   try {
     const CACHE_KEY = 'ct_trending_narratives_v1';
