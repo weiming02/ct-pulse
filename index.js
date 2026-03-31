@@ -445,7 +445,6 @@ app.post('/api/narratives', rateLimit, async (req, res) => {
     res.json({ narratives, cached: false, cachedAt: payload.timestamp, nextRefresh: payload.timestamp + CACHE_TTL_MS });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
-updateLeaderboard();
 module.exports = app;
 
  
